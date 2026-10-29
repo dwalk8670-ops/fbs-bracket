@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>FBS 138-Team Championship Bracket</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf.js for direct client-side PDF downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#090d16',
+              surface: '#111827',
+              surface2: '#1e293b',
+              border: '#1f293d',
+              accent: '#3b82f6',
+              gold: '#f59e0b',
+              emerald: '#10b981'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Teko:wght@600;700&display=swap');
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #090d16;
+      color: #f1f5f9;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .font-sports {
+      font-family: 'Teko', sans-serif;
+      letter-spacing: 0.05em;
+    }
+
+    /* Hide scrollbars for clean horizontal sliding */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Active pick styling */
+    .team-btn {
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .team-btn:active:not(.disabled) {
+      transform: scale(0.98);
+    }
+    .team-btn.winner {
+      background: linear-gradient(90deg, rgba(37, 99, 235, 0.28) 0%, rgba(30, 41, 59, 0.95) 100%);
+      border-color: #3b82f6 !important;
+      color: #93c5fd;
+      font-weight: 700;
+    }
+    .team-btn.eliminated {
+      opacity: 0.45;
+      text-decoration: line-through;
+    }
+
+    /* Toast animation */
+    #toast {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    /* Print styling */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-page {
+        page-break-after: always;
+        break-after: page;
+        padding: 20px;
+        background: white !important;
+        color: black !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-24 md:pb-8">
+
+  <!-- TOP APP HEADER -->
+  <header class="no-print sticky top-0 z-40 bg-[#0c1222]/95 backdrop-blur-md border-b border-brand-border px-3 py-2.5 shadow-lg">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-center justify-between gap-2">
+        
+        <!-- Brand & Title -->
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+            <i class="ph-bold ph-trophy text-xl text-white"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-sm md:text-base font-black uppercase tracking-tight text-white truncate">
+                FBS 138-Team Bracket
+              </h1>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50 font-bold uppercase">Mega</span>
+            </div>
+            <div class="flex items-center gap-1 text-[11px] text-slate-400">
+              <span id="quickChampHeader" class="text-amber-400 font-bold truncate max-w-[130px] sm:max-w-[200px]">Champ: Undecided</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Top Action Buttons -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button onclick="shareBracket()" aria-label="Share Bracket" class="p-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 active:scale-95 border border-slate-700 transition flex items-center justify-center">
+            <i class="ph-bold ph-share-network text-base text-blue-400"></i>
+          </button>
+          
+          <button onclick="randomizeAllPicks()" aria-label="Auto Pick" title="Auto Pick All" class="px-2.5 py-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 active:scale-95 border border-slate-700 text-xs font-semibold transition flex items-center gap-1">
+            <i class="ph-bold ph-shuffle text-sm text-emerald-400"></i>
+            <span class="hidden sm:inline">Auto-Pick</span>
+          </button>
+
+          <button onclick="exportToPDF()" id="pdfBtn" class="px-3 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white active:scale-95 text-xs font-bold shadow-md shadow-blue-600/30 transition flex items-center gap-1.5">
+            <i class="ph-bold ph-file-pdf text-sm"></i>
+            <span>PDF</span>
+          </button>
+
+          <button onclick="confirmResetPicks()" aria-label="Reset Bracket" title="Reset Bracket" class="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 active:scale-95 border border-slate-800 transition flex items-center justify-center">
+            <i class="ph-bold ph-trash text-sm"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Live Pick Completion Progress Bar -->
+      <div class="mt-2.5 flex items-center gap-2 text-[10px]">
+        <div class="flex-1 bg-slate-800/80 h-2 rounded-full overflow-hidden border border-slate-700/50">
+          <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 via-amber-400 to-emerald-400 w-0 transition-all duration-300"></div>
+        </div>
+        <span id="progressText" class="font-mono text-slate-300 font-semibold shrink-0">0/137 Picked</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SCROLLABLE CONTENT AREA -->
+  <main class="flex-1 max-w-4xl w-full mx-auto p-3 sm:p-4">
+    
+    <!-- Mobile Friendly Region Banner & Round Pills -->
+    <section class="no-print mb-3">
+      <!-- Active Region Header Card -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-md flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span id="regionIndicatorDot" class="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></span>
+          <div>
+            <h2 id="regionHeading" class="text-sm sm:text-base font-extrabold uppercase tracking-wide text-white">East Quadrant</h2>
+            <p id="regionSubheading" class="text-[11px] text-slate-400">34 Programs • 2 Opening Play-Ins</p>
+          </div>
+        </div>
+        <div class="bg-slate-950/70 border border-slate-800 px-2.5 py-1 rounded-lg text-right">
+          <span class="text-[9px] uppercase font-bold text-slate-400 block">Region Winner</span>
+          <span id="regionWinnerBanner" class="text-xs font-bold text-amber-400 truncate max-w-[120px] block">Undecided</span>
+        </div>
+      </div>
+
+      <!-- Sub-Navigation: Round Selector Horizontal Pills (Swipeable on touch screens) -->
+      <div id="roundPillContainer" class="mt-2.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+        <!-- Rendered via JavaScript -->
+      </div>
+    </section>
+
+    <!-- CONTAINER FOR CURRENT ROUND OR VIEW -->
+    <section id="matchupListContainer" class="space-y-3">
+      <!-- Rendered dynamically -->
+    </section>
+
+    <!-- Quick Navigation Jump Button (Mobile Ergonomic) -->
+    <div id="nextRoundJumpBar" class="no-print mt-6 mb-2 hidden">
+      <button onclick="advanceToNextRoundTab()" class="w-full py-3 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-blue-300 flex items-center justify-center gap-2 active:scale-98 transition shadow-lg">
+        <span>Proceed to Next Round</span>
+        <i class="ph-bold ph-arrow-right text-sm"></i>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- STICKY MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="no-print fixed bottom-0 left-0 right-0 z-40 bg-[#090d16]/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 shadow-2xl">
+    <div class="max-w-lg mx-auto grid grid-cols-5 gap-1 text-center">
+      
+      <button onclick="switchRegion('east')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="east">
+        <i class="ph-bold ph-compass text-lg"></i>
+        <span class="text-[10px] font-bold mt-0.5">East</span>
+      </button>
+
+      <button onclick="switchRegion('south')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="south">
+        <i class="ph-bold ph-sun text-lg"></i>
+        <span class="text-[10px] font-bold mt-0.5">South</span>
+      </button>
+
+      <button onclick="switchRegion('midwest')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="midwest">
+        <i class="ph-bold ph-shield text-lg"></i>
+        <span class="text-[10px] font-bold mt-0.5">Midwest</span>
+      </button>
+
+      <button onclick="switchRegion('west')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="west">
+        <i class="ph-bold ph-mountains text-lg"></i>
+        <span class="text-[10px] font-bold mt-0.5">West</span>
+      </button>
+
+      <button onclick="switchRegion('finals')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-amber-400/80 active:scale-95 transition" data-region="finals">
+        <i class="ph-fill ph-crown text-lg text-amber-400"></i>
+        <span class="text-[10px] font-bold mt-0.5">Finals</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="no-print fixed bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-200">
+    <div class="bg-slate-900 border border-slate-700 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2">
+      <i id="toastIcon" class="ph-bold ph-info text-blue-400 text-base"></i>
+      <span id="toastMsg" class="font-medium">Notification</span>
+    </div>
+  </div>
+
+  <!-- HIDDEN PDF RENDERING CANVAS -->
+  <div id="pdfExportContainer" class="hidden bg-white text-slate-900 p-6 font-sans">
+    <!-- Populated during PDF download -->
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script>
+    /* ============================================================
+       1. DATA STRUCTURE: 138 TEAMS & TOURNAMENT SETUP
+       ============================================================ */
+    const TOURNAMENT_DATA = {
+      east: {
+        id: 'east',
+        name: 'East Quadrant',
+        color: '#3b82f6',
+        teamsCount: 34,
+        playIns: [
+          { id: 'E_PI1', name: 'East Play-In 1', teamA: { name: 'Delaware', seed: 33 }, teamB: { name: 'Temple', seed: 34 }, targetSlot: 'E_R1_7' },
+          { id: 'E_PI2', name: 'East Play-In 2', teamA: { name: 'Buffalo', seed: 31 }, teamB: { name: 'Massachusetts (UMass)', seed: 32 }, targetSlot: 'E_R1_1' }
+        ],
+        round128: [
+          { id: 'E_M1', seed1: 1, team1: 'Penn State', seed2: 32, team2: 'Buffalo / UMass', playInTarget: 'E_PI2' },
+          { id: 'E_M2', seed1: 16, team1: 'Boston College', seed2: 17, team2: 'Old Dominion' },
+          { id: 'E_M3', seed1: 8, team1: 'Syracuse', seed2: 25, team2: 'Connecticut (UConn)' },
+          { id: 'E_M4', seed1: 9, team1: 'Maryland', seed2: 24, team2: 'Marshall' },
+          { id: 'E_M5', seed1: 5, team1: 'Clemson', seed2: 28, team2: 'Akron' },
+          { id: 'E_M6', seed1: 12, team1: 'North Carolina', seed2: 21, team2: 'James Madison' },
+          { id: 'E_M7', seed1: 4, team1: 'Miami (FL)', seed2: 29, team2: 'Delaware / Temple', playInTarget: 'E_PI1' },
+          { id: 'E_M8', seed1: 13, team1: 'NC State', seed2: 20, team2: 'East Carolina' },
+          { id: 'E_M9', seed1: 2, team1: 'Notre Dame', seed2: 31, team2: 'Kent State' },
+          { id: 'E_M10', seed1: 15, team1: 'Rutgers', seed2: 18, team2: 'Army West Point' },
+          { id: 'E_M11', seed1: 7, team1: 'Pittsburgh', seed2: 26, team2: 'Navy' },
+          { id: 'E_M12', seed1: 10, team1: 'West Virginia', seed2: 23, team2: 'Coastal Carolina' },
+          { id: 'E_M13', seed1: 6, team1: 'South Carolina', seed2: 27, team2: 'Charlotte' },
+          { id: 'E_M14', seed1: 11, team1: 'Virginia Tech', seed2: 22, team2: 'Appalachian State' },
+          { id: 'E_M15', seed1: 3, team1: 'Virginia', seed2: 30, team2: 'Liberty' },
+          { id: 'E_M16', seed1: 14, team1: 'Duke', seed2: 19, team2: 'Wake Forest' }
+        ]
+      },
+      south: {
+        id: 'south',
+        name: 'South Quadrant',
+        color: '#f59e0b',
+        teamsCount: 34,
+        playIns: [
+          { id: 'S_PI1', name: 'South Play-In 1', teamA: { name: 'Kennesaw State', seed: 33 }, teamB: { name: 'FIU', seed: 34 }, targetSlot: 'S_R1_7' },
+          { id: 'S_PI2', name: 'South Play-In 2', teamA: { name: 'Louisiana-Monroe', seed: 31 }, teamB: { name: 'Southern Miss', seed: 32 }, targetSlot: 'S_R1_1' }
+        ],
+        round128: [
+          { id: 'S_M1', seed1: 1, team1: 'Georgia', seed2: 32, team2: 'ULM / So. Miss', playInTarget: 'S_PI2' },
+          { id: 'S_M2', seed1: 16, team1: 'Florida', seed2: 17, team2: 'UCF' },
+          { id: 'S_M3', seed1: 8, team1: 'Vanderbilt', seed2: 25, team2: 'South Florida (USF)' },
+          { id: 'S_M4', seed1: 9, team1: 'Georgia Tech', seed2: 24, team2: 'Florida State' },
+          { id: 'S_M5', seed1: 5, team1: 'LSU', seed2: 28, team2: 'Middle Tennessee' },
+          { id: 'S_M6', seed1: 12, team1: 'Tulane', seed2: 21, team2: 'Georgia Southern' },
+          { id: 'S_M7', seed1: 4, team1: 'Ole Miss', seed2: 29, team2: 'Kennesaw / FIU', playInTarget: 'S_PI1' },
+          { id: 'S_M8', seed1: 13, team1: 'Auburn', seed2: 20, team2: 'South Alabama' },
+          { id: 'S_M9', seed1: 2, team1: 'Alabama', seed2: 31, team2: 'Georgia State' },
+          { id: 'S_M10', seed1: 15, team1: 'Memphis', seed2: 18, team2: 'Western Kentucky' },
+          { id: 'S_M11', seed1: 7, team1: 'Louisville', seed2: 26, team2: 'Florida Atlantic' },
+          { id: 'S_M12', seed1: 10, team1: 'Kentucky', seed2: 23, team2: 'Troy' },
+          { id: 'S_M13', seed1: 6, team1: 'Arkansas', seed2: 27, team2: 'UAB' },
+          { id: 'S_M14', seed1: 11, team1: 'Mississippi State', seed2: 22, team2: 'Louisiana (ULL)' },
+          { id: 'S_M15', seed1: 3, team1: 'Tennessee', seed2: 30, team2: 'Jacksonville State' },
+          { id: 'S_M16', seed1: 14, team1: 'Arkansas State', seed2: 19, team2: 'Louisiana Tech' }
+        ]
+      },
+      midwest: {
+        id: 'midwest',
+        name: 'Midwest Quadrant',
+        color: '#10b981',
+        teamsCount: 35,
+        playIns: [
+          { id: 'M_PI1', name: 'Midwest Play-In 1', teamA: { name: 'Ball State', seed: 33 }, teamB: { name: 'Eastern Michigan', seed: 34 }, targetSlot: 'M_R1_9' },
+          { id: 'M_PI2', name: 'Midwest Play-In 2', teamA: { name: 'Central Michigan', seed: 31 }, teamB: { name: 'Northern Illinois', seed: 32 }, targetSlot: 'M_R1_7' },
+          { id: 'M_PI3', name: 'Midwest Play-In 3', teamA: { name: 'Missouri State', seed: 35 }, teamB: { name: 'Western Michigan', seed: 36 }, targetSlot: 'M_R1_1' }
+        ],
+        round128: [
+          { id: 'M_M1', seed1: 1, team1: 'Ohio State', seed2: 32, team2: 'Mo. State / WMU', playInTarget: 'M_PI3' },
+          { id: 'M_M2', seed1: 16, team1: 'Northwestern', seed2: 17, team2: 'Cincinnati' },
+          { id: 'M_M3', seed1: 8, team1: 'Iowa', seed2: 25, team2: 'Miami (OH)' },
+          { id: 'M_M4', seed1: 9, team1: 'Nebraska', seed2: 24, team2: 'Bowling Green' },
+          { id: 'M_M5', seed1: 5, team1: 'Illinois', seed2: 28, team2: 'Purdue' },
+          { id: 'M_M6', seed1: 12, team1: 'Kansas State', seed2: 21, team2: 'Ohio' },
+          { id: 'M_M7', seed1: 4, team1: 'Missouri', seed2: 29, team2: 'CMU / NIU', playInTarget: 'M_PI2' },
+          { id: 'M_M8', seed1: 13, team1: 'Wisconsin', seed2: 20, team2: 'Toledo' },
+          { id: 'M_M9', seed1: 2, team1: 'Indiana', seed2: 31, team2: 'Ball St / EMU', playInTarget: 'M_PI1' },
+          { id: 'M_M10', seed1: 15, team1: 'Minnesota', seed2: 18, team2: 'Michigan State' },
+          { id: 'M_M11', seed1: 7, team1: 'Iowa State', seed2: 26, team2: 'Kansas' },
+          { id: 'M_M12', seed1: 10, team1: 'Oklahoma', seed2: 23, team2: 'Tulsa' },
+          { id: 'M_M13', seed1: 6, team1: 'Oklahoma State', seed2: 27, team2: 'North Texas' },
+          { id: 'M_M14', seed1: 11, team1: 'Texas A&M', seed2: 22, team2: 'Rice' },
+          { id: 'M_M15', seed1: 3, team1: 'Michigan', seed2: 30, team2: 'Sam Houston' },
+          { id: 'M_M16', seed1: 14, team1: 'SMU', seed2: 19, team2: 'Houston' }
+        ]
+      },
+      west: {
+        id: 'west',
+        name: 'West Quadrant',
+        color: '#a855f7',
+        teamsCount: 35,
+        playIns: [
+          { id: 'W_PI1', name: 'West Play-In 1', teamA: { name: 'New Mexico State', seed: 33 }, teamB: { name: 'UTEP', seed: 34 }, targetSlot: 'W_R1_9' },
+          { id: 'W_PI2', name: 'West Play-In 2', teamA: { name: 'Nevada', seed: 31 }, teamB: { name: 'Utah State', seed: 32 }, targetSlot: 'W_R1_7' },
+          { id: 'W_PI3', name: 'West Play-In 3', teamA: { name: 'San Jose State', seed: 35 }, teamB: { name: 'Hawaii', seed: 36 }, targetSlot: 'W_R1_1' }
+        ],
+        round128: [
+          { id: 'W_M1', seed1: 1, team1: 'Oregon', seed2: 32, team2: 'SJSU / Hawaii', playInTarget: 'W_PI3' },
+          { id: 'W_M2', seed1: 16, team1: 'Washington', seed2: 17, team2: 'Washington State' },
+          { id: 'W_M3', seed1: 8, team1: 'USC', seed2: 25, team2: 'San Diego State' },
+          { id: 'W_M4', seed1: 9, team1: 'Boise State', seed2: 24, team2: 'Fresno State' },
+          { id: 'W_M5', seed1: 5, team1: 'Texas', seed2: 28, team2: 'Texas State' },
+          { id: 'W_M6', seed1: 12, team1: 'TCU', seed2: 21, team2: 'UTSA' },
+          { id: 'W_M7', seed1: 4, team1: 'Texas Tech', seed2: 29, team2: 'Nevada / Utah St', playInTarget: 'W_PI2' },
+          { id: 'W_M8', seed1: 13, team1: 'Baylor', seed2: 20, team2: 'New Mexico' },
+          { id: 'W_M9', seed1: 2, team1: 'BYU', seed2: 31, team2: 'NMSU / UTEP', playInTarget: 'W_PI1' },
+          { id: 'W_M10', seed1: 15, team1: 'Arizona', seed2: 18, team2: 'Oregon State' },
+          { id: 'W_M11', seed1: 7, team1: 'Arizona State', seed2: 26, team2: 'California' },
+          { id: 'W_M12', seed1: 10, team1: 'Colorado', seed2: 23, team2: 'UNLV' },
+          { id: 'W_M13', seed1: 6, team1: 'UCLA', seed2: 27, team2: 'Stanford' },
+          { id: 'W_M14', seed1: 11, team1: 'Colorado State', seed2: 22, team2: 'Wyoming' },
+          { id: 'W_M15', seed1: 3, team1: 'Utah', seed2: 30, team2: 'Air Force' },
+          { id: 'W_M16', seed1: 14, team1: 'North Texas (MW)', seed2: 19, team2: 'Sam Houston (MW)' }
+        ]
+      }
+    };
+
+    /* User Picks State */
+    const PICKS = {};
+    let CURRENT_REGION = 'east';
+    let CURRENT_ROUND = 'r128';
+
+    /* Round sequence per quadrant */
+    const REGION_ROUNDS = [
+      { key: 'playin', label: 'Play-In' },
+      { key: 'r128', label: 'Round of 128' },
+      { key: 'r64', label: 'Round of 64' },
+      { key: 's16', label: 'Sweet 16' },
+      { key: 'e8', label: 'Elite 8' },
+      { key: 'champ', label: 'Region Final' }
+    ];
+
+    /* ============================================================
+       2. APPLICATION LIFECYCLE & STORAGE
+       ============================================================ */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPicks();
+      renderApp();
+      updateProgress();
+    });
+
+    function savePicks() {
+      try {
+        localStorage.setItem('fbs_138_picks_mobile', JSON.stringify(PICKS));
+      } catch (e) {
+        console.warn('LocalStorage save failed', e);
+      }
+    }
+
+    function loadPicks() {
+      try {
+        const saved = localStorage.getItem('fbs_138_picks_mobile');
+        if (saved) {
+          Object.assign(PICKS, JSON.parse(saved));
+        }
+      } catch (e) {
+        console.warn('LocalStorage load failed', e);
+      }
+    }
+
+    /* ============================================================
+       3. BRACKET PICK ENGINE & DYNAMIC PROPAGATION
+       ============================================================ */
+    function selectWinner(gameId, winningTeam) {
+      if (!winningTeam || !winningTeam.name) return;
+
+      const previousWinner = PICKS[gameId];
+      if (previousWinner && previousWinner.name === winningTeam.name) {
+        return; // Already selected
+      }
+
+      // If winner changed, purge downstream games that used old winner
+      if (previousWinner) {
+        purgeDownstream(gameId, previousWinner.name);
+      }
+
+      PICKS[gameId] = {
+        name: winningTeam.name,
+        seed: winningTeam.seed
+      };
+
+      savePicks();
+      renderApp();
+      updateProgress();
+    }
+
+    function purgeDownstream(triggerGameId, oldTeamName) {
+      for (const [id, pick] of Object.entries(PICKS)) {
+        if (id !== triggerGameId && pick.name === oldTeamName) {
+          delete PICKS[id];
+          // Recursively clean
+          purgeDownstream(id, oldTeamName);
+        }
+      }
+    }
+
+    function getWinner(gameId) {
+      return PICKS[gameId] || null;
+    }
+
+    /* ============================================================
+       4. MOBILE NAVIGATION ROUTER
+       ============================================================ */
+    function switchRegion(regionKey) {
+      CURRENT_REGION = regionKey;
+      if (regionKey === 'finals') {
+        CURRENT_ROUND = 'national';
+      } else {
+        CURRENT_ROUND = 'r128';
+      }
+
+      // Update bottom nav bar styles
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        if (tab.dataset.region === regionKey) {
+          tab.classList.add('text-blue-400', 'bg-slate-800/80');
+          tab.classList.remove('text-slate-400');
+        } else {
+          tab.classList.remove('text-blue-400', 'bg-slate-800/80');
+          tab.classList.add('text-slate-400');
+        }
+      });
+
+      renderApp();
+    }
+
+    function switchRound(roundKey) {
+      CURRENT_ROUND = roundKey;
+      renderApp();
+    }
+
+    function advanceToNextRoundTab() {
+      const idx = REGION_ROUNDS.findIndex(r => r.key === CURRENT_ROUND);
+      if (idx !== -1 && idx < REGION_ROUNDS.length - 1) {
+        switchRound(REGION_ROUNDS[idx + 1].key);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (idx === REGION_ROUNDS.length - 1) {
+        switchRegion('finals');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    /* ============================================================
+       5. COMPONENT BUILDERS (CARDS, MATCHUPS, ROUNDS)
+       ============================================================ */
+    function renderMatchupCard(gameId, teamA, teamB, label, subtitle) {
+      const winner = getWinner(gameId);
+
+      const isA = winner && teamA && winner.name === teamA.name;
+      const isB = winner && teamB && winner.name === teamB.name;
+      const isAElim = winner && teamA && winner.name !== teamA.name;
+      const isBElim = winner && teamB && winner.name !== teamB.name;
+
+      const hasA = teamA && teamA.name;
+      const hasB = teamB && teamB.name;
+
+      return `
+        <div class="bg-slate-900 border ${winner ? 'border-blue-900/50' : 'border-slate-800'} rounded-2xl overflow-hidden shadow-sm transition">
+          <div class="bg-slate-950/70 px-3 py-1.5 border-b border-slate-800/70 flex items-center justify-between text-[11px] text-slate-400">
+            <span class="font-bold text-slate-300 font-mono tracking-tight">${label}</span>
+            <div class="flex items-center gap-1.5">
+              ${subtitle ? `<span class="text-slate-500 text-[10px]">${subtitle}</span>` : ''}
+              ${winner ? '<span class="text-blue-400 font-bold flex items-center gap-1"><i class="ph-bold ph-check"></i> Selected</span>' : '<span class="text-amber-400/80 font-medium">Tap to Pick</span>'}
+            </div>
+          </div>
+
+          <div class="p-2 space-y-1.5">
+            <!-- Team A Button -->
+            <button type="button"
+                    onclick="${hasA ? `selectWinner('${gameId}', {name: '${escapeQuotes(teamA.name)}', seed: '${teamA.seed || ''}'})` : ''}"
+                    class="team-btn w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/40 text-left text-xs ${isA ? 'winner' : ''} ${isAElim ? 'eliminated' : ''} ${!hasA ? 'disabled text-slate-600 italic cursor-not-allowed' : 'text-slate-100 hover:border-slate-700'}">
+              <div class="flex items-center gap-2 truncate pr-2">
+                ${teamA && teamA.seed ? `<span class="w-6 h-5 flex items-center justify-center text-[10px] font-mono font-black bg-slate-800 text-blue-400 rounded-md shrink-0">#${teamA.seed}</span>` : ''}
+                <span class="font-semibold truncate text-[13px]">${hasA ? teamA.name : 'Waiting for Previous Round'}</span>
+              </div>
+              <div class="shrink-0 pl-1">
+                ${isA ? '<i class="ph-fill ph-check-circle text-blue-400 text-lg"></i>' : '<div class="w-4 h-4 rounded-full border border-slate-700"></div>'}
+              </div>
+            </button>
+
+            <!-- Team B Button -->
+            <button type="button"
+                    onclick="${hasB ? `selectWinner('${gameId}', {name: '${escapeQuotes(teamB.name)}', seed: '${teamB.seed || ''}'})` : ''}"
+                    class="team-btn w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/40 text-left text-xs ${isB ? 'winner' : ''} ${isBElim ? 'eliminated' : ''} ${!hasB ? 'disabled text-slate-600 italic cursor-not-allowed' : 'text-slate-100 hover:border-slate-700'}">
+              <div class="flex items-center gap-2 truncate pr-2">
+                ${teamB && teamB.seed ? `<span class="w-6 h-5 flex items-center justify-center text-[10px] font-mono font-black bg-slate-800 text-blue-400 rounded-md shrink-0">#${teamB.seed}</span>` : ''}
+                <span class="font-semibold truncate text-[13px]">${hasB ? teamB.name : 'Waiting for Previous Round'}</span>
+              </div>
+              <div class="shrink-0 pl-1">
+                ${isB ? '<i class="ph-fill ph-check-circle text-blue-400 text-lg"></i>' : '<div class="w-4 h-4 rounded-full border border-slate-700"></div>'}
+              </div>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeQuotes(str) {
+      if (!str) return '';
+      return str.replace(/'/g, "\\'");
+    }
+
+    /* ============================================================
+       6. MASTER RENDER ROUTER
+       ============================================================ */
+    function renderApp() {
+      // 1. If in Finals
+      if (CURRENT_REGION === 'finals') {
+        renderFinalsView();
+        return;
+      }
+
+      const reg = TOURNAMENT_DATA[CURRENT_REGION];
+      if (!reg) return;
+
+      // Update Region Header Banner
+      const headingEl = document.getElementById('regionHeading');
+      const subHeadingEl = document.getElementById('regionSubheading');
+      const dotEl = document.getElementById('regionIndicatorDot');
+      const champBannerEl = document.getElementById('regionWinnerBanner');
+
+      if (headingEl) headingEl.textContent = reg.name;
+      if (subHeadingEl) subHeadingEl.textContent = `${reg.teamsCount} Programs • ${reg.playIns.length} Play-Ins`;
+      if (dotEl) dotEl.style.backgroundColor = reg.color;
+
+      const regWinner = getWinner(`${CURRENT_REGION.toUpperCase()}_CHAMP`);
+      if (champBannerEl) {
+        if (regWinner) {
+          champBannerEl.textContent = regWinner.name;
+          champBannerEl.className = 'text-xs font-bold text-amber-400 truncate max-w-[140px] block';
+        } else {
+          champBannerEl.textContent = 'Undecided';
+          champBannerEl.className = 'text-xs font-bold text-slate-500 truncate max-w-[140px] block';
+        }
+      }
+
+      // Render Round selector pills
+      renderRoundPills();
+
+      // Render Matchups for current round
+      renderCurrentRoundMatchups();
+
+      // Show Jump button if not at final round
+      const jumpBar = document.getElementById('nextRoundJumpBar');
+      if (jumpBar) {
+        jumpBar.classList.remove('hidden');
+      }
+    }
+
+    function renderRoundPills() {
+      const pillContainer = document.getElementById('roundPillContainer');
+      if (!pillContainer) return;
+
+      pillContainer.innerHTML = REGION_ROUNDS.map(r => {
+        const isActive = CURRENT_ROUND === r.key;
+        return `
+          <button onclick="switchRound('${r.key}')" 
+                  class="px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 ${isActive ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">
+            ${r.label}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderCurrentRoundMatchups() {
+      const container = document.getElementById('matchupListContainer');
+      if (!container) return;
+
+      const reg = TOURNAMENT_DATA[CURRENT_REGION];
+      const rKeyUpper = CURRENT_REGION.toUpperCase();
+
+      // Compute Round of 128 matchups with play-in winners
+      const r128 = reg.round128.map(m => {
+        let teamBName = m.team2;
+        if (m.playInTarget) {
+          const piWin = getWinner(m.playInTarget);
+          teamBName = piWin ? piWin.name : `Winner of ${m.playInTarget}`;
+        }
+        return {
+          id: m.id,
+          teamA: { name: m.team1, seed: m.seed1 },
+          teamB: { name: teamBName, seed: m.seed2 }
+        };
+      });
+
+      // Round 2 (Round of 64) -> 8 games
+      const r64 = [];
+      for (let i = 0; i < 8; i++) {
+        const id = `${rKeyUpper}_R64_${i+1}`;
+        const tA = getWinner(r128[i * 2].id);
+        const tB = getWinner(r128[i * 2 + 1].id);
+        r64.push({ id, teamA: tA, teamB: tB, label: `Round of 64 - Match ${i+1}` });
+      }
+
+      // Round 3 (Sweet 16) -> 4 games
+      const s16 = [];
+      for (let i = 0; i < 4; i++) {
+        const id = `${rKeyUpper}_S16_${i+1}`;
+        const tA = getWinner(r64[i * 2].id);
+        const tB = getWinner(r64[i * 2 + 1].id);
+        s16.push({ id, teamA: tA, teamB: tB, label: `Sweet 16 - Match ${i+1}` });
+      }
+
+      // Round 4 (Elite 8) -> 2 games
+      const e8 = [];
+      for (let i = 0; i < 2; i++) {
+        const id = `${rKeyUpper}_E8_${i+1}`;
+        const tA = getWinner(s16[i * 2].id);
+        const tB = getWinner(s16[i * 2 + 1].id);
+        e8.push({ id, teamA: tA, teamB: tB, label: `Regional Semifinal ${i+1}` });
+      }
+
+      // Round 5 (Regional Championship)
+      const regChampId = `${rKeyUpper}_CHAMP`;
+      const regTeamA = getWinner(e8[0].id);
+      const regTeamB = getWinner(e8[1].id);
+
+      // Render based on CURRENT_ROUND tab
+      if (CURRENT_ROUND === 'playin') {
+        container.innerHTML = `
+          <div class="p-3 bg-blue-950/20 border border-blue-900/40 rounded-xl mb-3 text-xs text-blue-300">
+            <strong>First Four Play-Ins:</strong> Winners immediately secure their Round of 128 tournament spots below.
+          </div>
+          <div class="space-y-3">
+            ${reg.playIns.map((pi, idx) => renderMatchupCard(pi.id, pi.teamA, pi.teamB, pi.name, 'First Four Slot')).join('')}
+          </div>
+        `;
+      } else if (CURRENT_ROUND === 'r128') {
+        container.innerHTML = r128.map((m, idx) => renderMatchupCard(m.id, m.teamA, m.teamB, `R128 Game ${idx+1}`, 'Campus Site')).join('');
+      } else if (CURRENT_ROUND === 'r64') {
+        container.innerHTML = r64.map(m => renderMatchupCard(m.id, m.teamA, m.teamB, m.label, 'Round of 64')).join('');
+      } else if (CURRENT_ROUND === 's16') {
+        container.innerHTML = s16.map(m => renderMatchupCard(m.id, m.teamA, m.teamB, m.label, 'Sweet 16')).join('');
+      } else if (CURRENT_ROUND === 'e8') {
+        container.innerHTML = e8.map(m => renderMatchupCard(m.id, m.teamA, m.teamB, m.label, 'Regional Semis')).join('');
+      } else if (CURRENT_ROUND === 'champ') {
+        const regWinner = getWinner(regChampId);
+        container.innerHTML = `
+          <div class="bg-gradient-to-b from-blue-950/30 to-slate-900 border border-blue-900/50 p-4 rounded-2xl shadow-xl space-y-3">
+            <div class="text-center">
+              <span class="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-900/40 px-2 py-0.5 rounded-full border border-blue-800">
+                ${reg.name} Championship
+              </span>
+              <h3 class="text-lg font-black uppercase text-white mt-1">Regional Final</h3>
+              <p class="text-xs text-slate-400">Winner punches ticket to the College Football Final Four</p>
+            </div>
+
+            ${renderMatchupCard(regChampId, regTeamA, regTeamB, `${reg.name} Crown`, 'Final Four Berth')}
+
+            <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-xl text-center">
+              <span class="text-[10px] text-slate-400 block uppercase font-bold">Regional Champion</span>
+              <span class="text-base font-black text-amber-400 uppercase tracking-wide block mt-0.5">
+                ${regWinner ? regWinner.name : 'Awaiting Selection'}
+              </span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    /* ============================================================
+       7. FINAL FOUR & NATIONAL TITLE DASHBOARD
+       ============================================================ */
+    function renderFinalsView() {
+      const container = document.getElementById('matchupListContainer');
+      const roundPills = document.getElementById('roundPillContainer');
+      const jumpBar = document.getElementById('nextRoundJumpBar');
+      if (jumpBar) jumpBar.classList.add('hidden');
+
+      // Update header banner for finals
+      document.getElementById('regionHeading').textContent = 'National Championship Series';
+      document.getElementById('regionSubheading').textContent = 'The Final Four • Rose Bowl, Sugar Bowl & National Final';
+      document.getElementById('regionIndicatorDot').style.backgroundColor = '#f59e0b';
+
+      if (roundPills) {
+        roundPills.innerHTML = `
+          <div class="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs font-bold text-amber-300 flex items-center gap-1.5">
+            <i class="ph-fill ph-crown text-amber-400"></i> The Ultimate Crown
+          </div>
+        `;
+      }
+
+      const eastChamp = getWinner('EAST_CHAMP');
+      const southChamp = getWinner('SOUTH_CHAMP');
+      const midwestChamp = getWinner('MIDWEST_CHAMP');
+      const westChamp = getWinner('WEST_CHAMP');
+
+      const semi1Winner = getWinner('NAT_SEMI_1');
+      const semi2Winner = getWinner('NAT_SEMI_2');
+      const natChamp = getWinner('NAT_CHAMPIONSHIP');
+
+      // Update champion banner
+      const champBannerEl = document.getElementById('regionWinnerBanner');
+      if (champBannerEl) {
+        champBannerEl.textContent = natChamp ? natChamp.name : 'Undecided';
+        champBannerEl.className = natChamp ? 'text-xs font-black text-amber-400 truncate max-w-[140px] block' : 'text-xs font-bold text-slate-500 truncate max-w-[140px] block';
+      }
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          
+          <!-- Final Four Summary Strip -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
+              <span class="text-[9px] font-bold text-blue-400 uppercase block">East Champ</span>
+              <span class="text-xs font-bold text-white truncate block mt-0.5">${eastChamp ? eastChamp.name : '—'}</span>
+            </div>
+            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
+              <span class="text-[9px] font-bold text-amber-400 uppercase block">South Champ</span>
+              <span class="text-xs font-bold text-white truncate block mt-0.5">${southChamp ? southChamp.name : '—'}</span>
+            </div>
+            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
+              <span class="text-[9px] font-bold text-emerald-400 uppercase block">Midwest Champ</span>
+              <span class="text-xs font-bold text-white truncate block mt-0.5">${midwestChamp ? midwestChamp.name : '—'}</span>
+            </div>
+            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
+              <span class="text-[9px] font-bold text-purple-400 uppercase block">West Champ</span>
+              <span class="text-xs font-bold text-white truncate block mt-0.5">${westChamp ? westChamp.name : '—'}</span>
+            </div>
+          </div>
+
+          <!-- Semifinals -->
+          <div class="space-y-3">
+            <div class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i class="ph-bold ph-trophy text-amber-400"></i> National Semifinals
+            </div>
+            ${renderMatchupCard('NAT_SEMI_1', eastChamp, midwestChamp, 'Semifinal 1 (Rose Bowl)', 'East vs Midwest')}
+            ${renderMatchupCard('NAT_SEMI_2', southChamp, westChamp, 'Semifinal 2 (Sugar Bowl)', 'South vs West')}
+          </div>
+
+          <!-- National Championship Crown Box -->
+          <div class="bg-gradient-to-b from-slate-900 via-blue-950/30 to-slate-900 border-2 border-amber-500/50 rounded-2xl p-4 shadow-2xl relative">
+            <div class="text-center mb-3">
+              <i class="ph-fill ph-trophy text-4xl text-amber-400 inline-block mb-1"></i>
+              <h3 class="text-lg font-black uppercase text-white tracking-tight">CFP National Championship Game</h3>
+              <p class="text-[11px] text-slate-400">Mercedes-Benz Stadium • Neutral Site</p>
+            </div>
+
+            ${renderMatchupCard('NAT_CHAMPIONSHIP', semi1Winner, semi2Winner, 'National Title Game', 'For the Trophy')}
+
+            <div class="mt-4 p-3 bg-slate-950/90 border border-amber-500/40 rounded-xl text-center">
+              <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">2026-2027 FBS National Champion</span>
+              <span class="text-xl font-black text-amber-400 uppercase tracking-wide block mt-1">
+                ${natChamp ? natChamp.name : 'Trophy Unclaimed'}
+              </span>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    /* ============================================================
+       8. PROGRESS & STATS
+       ============================================================ */
+    function updateProgress() {
+      const totalMatches = 137;
+      const count = Object.keys(PICKS).length;
+      const pct = Math.min(100, Math.round((count / totalMatches) * 100));
+
+      const bar = document.getElementById('progressBar');
+      const txt = document.getElementById('progressText');
+      const headerChamp = document.getElementById('quickChampHeader');
+
+      if (bar) bar.style.width = `${pct}%`;
+      if (txt) txt.textContent = `${count} / ${totalMatches} Picked`;
+
+      const champ = getWinner('NAT_CHAMPIONSHIP');
+      if (headerChamp) {
+        if (champ) {
+          headerChamp.textContent = `Champ: ${champ.name}`;
+          headerChamp.className = 'text-amber-400 font-bold truncate max-w-[140px] sm:max-w-[200px]';
+        } else {
+          headerChamp.textContent = 'Champ: Undecided';
+          headerChamp.className = 'text-slate-400 font-semibold truncate max-w-[140px] sm:max-w-[200px]';
+        }
+      }
+    }
+
+    /* ============================================================
+       9. RANDOMIZE / AUTO-PICK & RESET
+       ============================================================ */
+    function randomizeAllPicks() {
+      // 1. Play-ins
+      ['east', 'south', 'midwest', 'west'].forEach(rKey => {
+        const reg = TOURNAMENT_DATA[rKey];
+        reg.playIns.forEach(pi => {
+          selectWinner(pi.id, Math.random() < 0.5 ? pi.teamA : pi.teamB);
+        });
+      });
+
+      // 2. Quadrants round-by-round
+      ['east', 'south', 'midwest', 'west'].forEach(rKey => {
+        const reg = TOURNAMENT_DATA[rKey];
+        const rUpper = rKey.toUpperCase();
+
+        // R128
+        reg.round128.forEach(m => {
+          let teamBName = m.team2;
+          if (m.playInTarget) {
+            teamBName = (getWinner(m.playInTarget) || { name: m.team2 }).name;
+          }
+          // Seed weighted odds
+          const seedWeight = m.seed1 < m.seed2 ? 0.72 : 0.5;
+          selectWinner(m.id, Math.random() < seedWeight ? { name: m.team1, seed: m.seed1 } : { name: teamBName, seed: m.seed2 });
+        });
+
+        // R64
+        for (let i = 0; i < 8; i++) {
+          const gId = `${rUpper}_R64_${i+1}`;
+          const tA = getWinner(reg.round128[i*2].id);
+          const tB = getWinner(reg.round128[i*2+1].id);
+          if (tA && tB) selectWinner(gId, Math.random() < 0.5 ? tA : tB);
+        }
+
+        // Sweet 16
+        for (let i = 0; i < 4; i++) {
+          const gId = `${rUpper}_S16_${i+1}`;
+          const tA = getWinner(`${rUpper}_R64_${i*2+1}`);
+          const tB = getWinner(`${rUpper}_R64_${i*2+2}`);
+          if (tA && tB) selectWinner(gId, Math.random() < 0.5 ? tA : tB);
+        }
+
+        // Elite 8
+        for (let i = 0; i < 2; i++) {
+          const gId = `${rUpper}_E8_${i+1}`;
+          const tA = getWinner(`${rUpper}_S16_${i*2+1}`);
+          const tB = getWinner(`${rUpper}_S16_${i*2+2}`);
+          if (tA && tB) selectWinner(gId, Math.random() < 0.5 ? tA : tB);
+        }
+
+        // Regional Final
+        const regChampId = `${rUpper}_CHAMP`;
+        const rA = getWinner(`${rUpper}_E8_1`);
+        const rB = getWinner(`${rUpper}_E8_2`);
+        if (rA && rB) selectWinner(regChampId, Math.random() < 0.5 ? rA : rB);
+      });
+
+      // 3. National Semis & Final
+      const eChamp = getWinner('EAST_CHAMP');
+      const mChamp = getWinner('MIDWEST_CHAMP');
+      if (eChamp && mChamp) {
+        selectWinner('NAT_SEMI_1', Math.random() < 0.5 ? eChamp : mChamp);
+      }
+
+      const sChamp = getWinner('SOUTH_CHAMP');
+      const wChamp = getWinner('WEST_CHAMP');
+      if (sChamp && wChamp) {
+        selectWinner('NAT_SEMI_2', Math.random() < 0.5 ? sChamp : wChamp);
+      }
+
+      const f1 = getWinner('NAT_SEMI_1');
+      const f2 = getWinner('NAT_SEMI_2');
+      if (f1 && f2) {
+        selectWinner('NAT_CHAMPIONSHIP', Math.random() < 0.5 ? f1 : f2);
+      }
+
+      showToast('All 137 games randomly simulated!', 'ph-shuffle');
+    }
+
+    function confirmResetPicks() {
+      for (const k of Object.keys(PICKS)) {
+        delete PICKS[k];
+      }
+      savePicks();
+      renderApp();
+      updateProgress();
+      showToast('Bracket reset. Start fresh!', 'ph-trash');
+    }
+
+    /* ============================================================
+       10. SHARING VIA WEB SHARE API & CLIPBOARD
+       ============================================================ */
+    async function shareBracket() {
+      const champ = getWinner('NAT_CHAMPIONSHIP');
+      const champText = champ ? champ.name : 'Undecided';
+      const shareData = {
+        title: 'NCAA FBS 138-Team Mega-Bracket',
+        text: `Check out my 138-Team College Football National Bracket! My predicted National Champion: ${champText}.`,
+        url: window.location.href
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          showToast('Shared successfully!', 'ph-share-network');
+        } catch (e) {
+          // User cancelled or share failed
+        }
+      } else {
+        // Fallback copy summary to clipboard
+        try {
+          document.execCommand('copy');
+          showToast('Bracket summary copied to clipboard!', 'ph-copy');
+        } catch (err) {
+          showToast('Share link ready!', 'ph-share-network');
+        }
+      }
+    }
+
+    function showToast(msg, iconName = 'ph-info') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        if (toastIcon) toastIcon.className = `ph-bold ${iconName} text-blue-400 text-base`;
+        toast.classList.remove('opacity-0', 'translate-y-3');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-3');
+          toast.classList.remove('opacity-100', 'translate-y-0');
+        }, 2200);
+      }
+    }
+
+    /* ============================================================
+       11. MOBILE PDF EXPORT GENERATION
+       ============================================================ */
+    function exportToPDF() {
+      const btn = document.getElementById('pdfBtn');
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i>`;
+      btn.disabled = true;
+
+      const exportContainer = document.getElementById('pdfExportContainer');
+      exportContainer.classList.remove('hidden');
+
+      const natChamp = getWinner('NAT_CHAMPIONSHIP');
+      const eastChamp = getWinner('EAST_CHAMP');
+      const southChamp = getWinner('SOUTH_CHAMP');
+      const midwestChamp = getWinner('MIDWEST_CHAMP');
+      const westChamp = getWinner('WEST_CHAMP');
+
+      function buildRegionTable(rKey, title) {
+        const reg = TOURNAMENT_DATA[rKey];
+        return `
+          <div class="print-page" style="page-break-after: always; padding: 20px; font-family: sans-serif; color: #111;">
+            <div style="border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 10px; display: flex; justify-content: space-between;">
+              <h2 style="font-size: 16px; margin: 0; text-transform: uppercase;">${title} Picks</h2>
+              <span style="font-size: 11px; font-weight: 700; color: #2563eb;">Regional Winner: ${(getWinner(`${rKey.toUpperCase()}_CHAMP`) || {name: 'UNDECIDED'}).name}</span>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+              <thead>
+                <tr style="background: #0f172a; color: white;">
+                  <th style="padding: 4px; text-align: left;">Round of 128 Matchup</th>
+                  <th style="padding: 4px; text-align: left;">R128 Pick</th>
+                  <th style="padding: 4px; text-align: left;">R64 Pick</th>
+                  <th style="padding: 4px; text-align: left;">Sweet 16</th>
+                  <th style="padding: 4px; text-align: left;">Elite 8</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${reg.round128.map((m, i) => {
+                  const r128Win = getWinner(m.id);
+                  const r64Win = getWinner(`${rKey.toUpperCase()}_R64_${Math.floor(i/2)+1}`);
+                  const s16Win = getWinner(`${rKey.toUpperCase()}_S16_${Math.floor(i/4)+1}`);
+                  const e8Win = getWinner(`${rKey.toUpperCase()}_E8_${Math.floor(i/8)+1}`);
+
+                  return `
+                    <tr style="border-bottom: 1px solid #e2e8f0; ${i % 2 === 1 ? 'background: #f8fafc;' : ''}">
+                      <td style="padding: 3.5px;">(#${m.seed1}) ${m.team1} vs (#${m.seed2}) ${m.team2}</td>
+                      <td style="padding: 3.5px; font-weight: 600; color: #2563eb;">${r128Win ? r128Win.name : '—'}</td>
+                      <td style="padding: 3.5px; font-weight: 600;">${i % 2 === 0 && r64Win ? r64Win.name : ''}</td>
+                      <td style="padding: 3.5px; font-weight: 600; color: #b45309;">${i % 4 === 0 && s16Win ? s16Win.name : ''}</td>
+                      <td style="padding: 3.5px; font-weight: 700; color: #15803d;">${i % 8 === 0 && e8Win ? e8Win.name : ''}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      exportContainer.innerHTML = `
+        <!-- Cover & Championship Certificate -->
+        <div class="print-page" style="page-break-after: always; padding: 25px; font-family: sans-serif; color: #111;">
+          <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+            <h1 style="font-size: 22px; font-weight: 900; margin: 0; text-transform: uppercase;">
+              NCAA Division I FBS 138-Team National Bracket
+            </h1>
+            <p style="font-size: 12px; color: #475569; margin: 4px 0 0 0;">Official User Selections • All 138 Programs Included</p>
+          </div>
+
+          <div style="background: #f1f5f9; border: 2px solid #0f172a; border-radius: 8px; padding: 18px; text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.1em; display: block;">
+              Predicted Consensus National Champion
+            </span>
+            <div style="font-size: 26px; font-weight: 900; color: #1d4ed8; text-transform: uppercase; margin-top: 6px;">
+              ${natChamp ? natChamp.name : 'NO CHAMPION SELECTED YET'}
+            </div>
+          </div>
+
+          <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 10px;">
+            The Final Four Qualifiers
+          </h3>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
+              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">East Champion</span>
+              <div style="font-size: 13px; font-weight: 700;">${eastChamp ? eastChamp.name : '—'}</div>
+            </div>
+            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
+              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Midwest Champion</span>
+              <div style="font-size: 13px; font-weight: 700;">${midwestChamp ? midwestChamp.name : '—'}</div>
+            </div>
+            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
+              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">South Champion</span>
+              <div style="font-size: 13px; font-weight: 700;">${southChamp ? southChamp.name : '—'}</div>
+            </div>
+            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
+              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">West Champion</span>
+              <div style="font-size: 13px; font-weight: 700;">${westChamp ? westChamp.name : '—'}</div>
+            </div>
+          </div>
+
+          <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: 9.5px; color: #475569; line-height: 1.4;">
+            <strong>Tournament Summary:</strong> Covers all 138 NCAA Football Bowl Subdivision (FBS) teams across 137 tournament matchups, beginning with 10 First Four play-ins and cascading through the 128-team Round of 64 into the neutral-site National Finals.
+          </div>
+        </div>
+
+        <!-- Regional breakdown pages -->
+        ${buildRegionTable('east', 'East Quadrant')}
+        ${buildRegionTable('south', 'South Quadrant')}
+        ${buildRegionTable('midwest', 'Midwest Quadrant')}
+        ${buildRegionTable('west', 'West Quadrant')}
+      `;
+
+      const opt = {
+        margin: 0.25,
+        filename: 'FBS_138_Championship_Bracket.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(exportContainer).save().then(() => {
+        exportContainer.classList.add('hidden');
+        btn.innerHTML = origHtml;
+        btn.disabled = false;
+        showToast('PDF downloaded successfully!', 'ph-file-pdf');
+      }).catch(err => {
+        console.error('PDF error:', err);
+        window.print();
+        exportContainer.classList.add('hidden');
+        btn.innerHTML = origHtml;
+        btn.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>
