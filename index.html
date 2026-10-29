@@ -2,13 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>FBS 138-Team Championship Bracket</title>
-  <!-- Tailwind CSS CDN -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FBS 138-Team College Football National Bracket</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- html2pdf.js for direct client-side PDF downloads -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script>
     tailwind.config = {
@@ -16,1088 +13,742 @@
       theme: {
         extend: {
           colors: {
-            brand: {
-              bg: '#090d16',
-              surface: '#111827',
-              surface2: '#1e293b',
-              border: '#1f293d',
-              accent: '#3b82f6',
-              gold: '#f59e0b',
-              emerald: '#10b981'
-            }
+            brand: { bg: '#090d16', card: '#111827', cardLight: '#1f293d', border: '#2b3952', accent: '#3b82f6', gold: '#f59e0b', crimson: '#ef4444' }
           }
         }
       }
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Teko:wght@600;700&display=swap');
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #090d16;
-      color: #f1f5f9;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-
-    .font-sports {
-      font-family: 'Teko', sans-serif;
-      letter-spacing: 0.05em;
-    }
-
-    /* Hide scrollbars for clean horizontal sliding */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* Active pick styling */
-    .team-btn {
-      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .team-btn:active:not(.disabled) {
-      transform: scale(0.98);
-    }
-    .team-btn.winner {
-      background: linear-gradient(90deg, rgba(37, 99, 235, 0.28) 0%, rgba(30, 41, 59, 0.95) 100%);
-      border-color: #3b82f6 !important;
-      color: #93c5fd;
-      font-weight: 700;
-    }
-    .team-btn.eliminated {
-      opacity: 0.45;
-      text-decoration: line-through;
-    }
-
-    /* Toast animation */
-    #toast {
-      transition: opacity 0.25s ease, transform 0.25s ease;
-    }
-
-    /* Print styling */
-    @media print {
-      body {
-        background: #ffffff !important;
-        color: #000000 !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      .print-page {
-        page-break-after: always;
-        break-after: page;
-        padding: 20px;
-        background: white !important;
-        color: black !important;
-      }
-    }
+    body { background-color: #090d16; color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .card-team { transition: background 0.15s ease, border-color 0.15s ease; }
+    .card-team:active { transform: scale(0.98); }
+    @media print { .no-print { display: none !important; } }
   </style>
 </head>
-<body class="min-h-screen flex flex-col pb-24 md:pb-8">
+<body class="min-h-screen flex flex-col font-sans select-none pb-24">
 
-  <!-- TOP APP HEADER -->
-  <header class="no-print sticky top-0 z-40 bg-[#0c1222]/95 backdrop-blur-md border-b border-brand-border px-3 py-2.5 shadow-lg">
-    <div class="max-w-4xl mx-auto">
-      <div class="flex items-center justify-between gap-2">
-        
-        <!-- Brand & Title -->
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
-            <i class="ph-bold ph-trophy text-xl text-white"></i>
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h1 class="text-sm md:text-base font-black uppercase tracking-tight text-white truncate">
-                FBS 138-Team Bracket
-              </h1>
-              <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50 font-bold uppercase">Mega</span>
-            </div>
-            <div class="flex items-center gap-1 text-[11px] text-slate-400">
-              <span id="quickChampHeader" class="text-amber-400 font-bold truncate max-w-[130px] sm:max-w-[200px]">Champ: Undecided</span>
-            </div>
-          </div>
+  <!-- Header -->
+  <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-40 px-4 py-3 shadow-md">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="ph ph-trophy text-amber-400 text-2xl"></i>
+        <div>
+          <h1 class="font-extrabold text-base tracking-wide uppercase text-white leading-tight">FBS 138 Championship</h1>
+          <p class="text-xs text-gray-400 font-medium">All 138 Programs &bull; Click to Pick</p>
         </div>
-
-        <!-- Quick Top Action Buttons -->
-        <div class="flex items-center gap-1.5 shrink-0">
-          <button onclick="shareBracket()" aria-label="Share Bracket" class="p-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 active:scale-95 border border-slate-700 transition flex items-center justify-center">
-            <i class="ph-bold ph-share-network text-base text-blue-400"></i>
-          </button>
-          
-          <button onclick="randomizeAllPicks()" aria-label="Auto Pick" title="Auto Pick All" class="px-2.5 py-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 active:scale-95 border border-slate-700 text-xs font-semibold transition flex items-center gap-1">
-            <i class="ph-bold ph-shuffle text-sm text-emerald-400"></i>
-            <span class="hidden sm:inline">Auto-Pick</span>
-          </button>
-
-          <button onclick="exportToPDF()" id="pdfBtn" class="px-3 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white active:scale-95 text-xs font-bold shadow-md shadow-blue-600/30 transition flex items-center gap-1.5">
-            <i class="ph-bold ph-file-pdf text-sm"></i>
-            <span>PDF</span>
-          </button>
-
-          <button onclick="confirmResetPicks()" aria-label="Reset Bracket" title="Reset Bracket" class="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 active:scale-95 border border-slate-800 transition flex items-center justify-center">
-            <i class="ph-bold ph-trash text-sm"></i>
-          </button>
-        </div>
-
       </div>
-
-      <!-- Live Pick Completion Progress Bar -->
-      <div class="mt-2.5 flex items-center gap-2 text-[10px]">
-        <div class="flex-1 bg-slate-800/80 h-2 rounded-full overflow-hidden border border-slate-700/50">
-          <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 via-amber-400 to-emerald-400 w-0 transition-all duration-300"></div>
-        </div>
-        <span id="progressText" class="font-mono text-slate-300 font-semibold shrink-0">0/137 Picked</span>
+      <div class="flex items-center space-x-2">
+        <button onclick="openSeedingModal()" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-sm">
+          <i class="ph ph-shuffle"></i>
+          <span>Seed/Shuffle</span>
+        </button>
+        <button onclick="downloadBracketPDF()" id="pdfBtn" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-md">
+          <i class="ph ph-file-pdf"></i>
+          <span>PDF</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN SCROLLABLE CONTENT AREA -->
-  <main class="flex-1 max-w-4xl w-full mx-auto p-3 sm:p-4">
-    
-    <!-- Mobile Friendly Region Banner & Round Pills -->
-    <section class="no-print mb-3">
-      <!-- Active Region Header Card -->
-      <div class="bg-gradient-to-r from-slate-900 to-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-md flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <span id="regionIndicatorDot" class="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></span>
-          <div>
-            <h2 id="regionHeading" class="text-sm sm:text-base font-extrabold uppercase tracking-wide text-white">East Quadrant</h2>
-            <p id="regionSubheading" class="text-[11px] text-slate-400">34 Programs • 2 Opening Play-Ins</p>
-          </div>
+  <!-- Progress Bar & Quick Controls -->
+  <div class="bg-gray-950/80 border-b border-gray-800/80 px-4 py-2 sticky top-[57px] z-30 backdrop-blur-md">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-3 text-xs">
+      <div class="flex-1 flex items-center space-x-2">
+        <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+          <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-amber-400 h-2 w-0 transition-all duration-300"></div>
         </div>
-        <div class="bg-slate-950/70 border border-slate-800 px-2.5 py-1 rounded-lg text-right">
-          <span class="text-[9px] uppercase font-bold text-slate-400 block">Region Winner</span>
-          <span id="regionWinnerBanner" class="text-xs font-bold text-amber-400 truncate max-w-[120px] block">Undecided</span>
-        </div>
+        <span id="progressText" class="text-gray-400 whitespace-nowrap text-[11px] font-mono">0/137</span>
       </div>
-
-      <!-- Sub-Navigation: Round Selector Horizontal Pills (Swipeable on touch screens) -->
-      <div id="roundPillContainer" class="mt-2.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-        <!-- Rendered via JavaScript -->
+      <div class="flex space-x-1.5">
+        <button onclick="randomizeAllPicks()" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[11px] font-medium">Auto-Pick</button>
+        <button onclick="resetBracket()" class="px-2 py-1 bg-gray-800 hover:bg-rose-900/40 text-gray-400 hover:text-rose-300 rounded text-[11px] font-medium">Clear</button>
       </div>
-    </section>
-
-    <!-- CONTAINER FOR CURRENT ROUND OR VIEW -->
-    <section id="matchupListContainer" class="space-y-3">
-      <!-- Rendered dynamically -->
-    </section>
-
-    <!-- Quick Navigation Jump Button (Mobile Ergonomic) -->
-    <div id="nextRoundJumpBar" class="no-print mt-6 mb-2 hidden">
-      <button onclick="advanceToNextRoundTab()" class="w-full py-3 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-blue-300 flex items-center justify-center gap-2 active:scale-98 transition shadow-lg">
-        <span>Proceed to Next Round</span>
-        <i class="ph-bold ph-arrow-right text-sm"></i>
-      </button>
     </div>
+  </div>
 
+  <!-- Round Filter Carousel -->
+  <div id="roundFilterNav" class="bg-gray-900/60 border-b border-gray-800/60 px-4 py-2 sticky top-[97px] z-20 backdrop-blur-sm">
+    <div id="roundFilterContainer" class="max-w-4xl mx-auto flex space-x-2 overflow-x-auto no-scrollbar py-0.5 text-xs font-medium text-gray-400">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Main Bracket Workspace -->
+  <main class="flex-1 max-w-4xl w-full mx-auto p-4" id="mainContainer">
+    <!-- Active Quadrant or Finals Screen will render here -->
+    <div id="activeScreenContainer" class="space-y-4"></div>
   </main>
 
-  <!-- STICKY MOBILE BOTTOM NAVIGATION BAR -->
-  <nav class="no-print fixed bottom-0 left-0 right-0 z-40 bg-[#090d16]/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 shadow-2xl">
-    <div class="max-w-lg mx-auto grid grid-cols-5 gap-1 text-center">
-      
-      <button onclick="switchRegion('east')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="east">
-        <i class="ph-bold ph-compass text-lg"></i>
-        <span class="text-[10px] font-bold mt-0.5">East</span>
+  <!-- Sticky Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-40 px-2 py-1.5 shadow-2xl">
+    <div class="max-w-md mx-auto grid grid-cols-5 text-center text-[10px] font-semibold text-gray-400">
+      <button onclick="switchQuadrant('east')" id="nav-east" class="py-1 flex flex-col items-center space-y-0.5">
+        <i class="ph ph-compass text-lg"></i>
+        <span>East (34)</span>
       </button>
-
-      <button onclick="switchRegion('south')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="south">
-        <i class="ph-bold ph-sun text-lg"></i>
-        <span class="text-[10px] font-bold mt-0.5">South</span>
+      <button onclick="switchQuadrant('south')" id="nav-south" class="py-1 flex flex-col items-center space-y-0.5">
+        <i class="ph ph-sun text-lg"></i>
+        <span>South (34)</span>
       </button>
-
-      <button onclick="switchRegion('midwest')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="midwest">
-        <i class="ph-bold ph-shield text-lg"></i>
-        <span class="text-[10px] font-bold mt-0.5">Midwest</span>
+      <button onclick="switchQuadrant('midwest')" id="nav-midwest" class="py-1 flex flex-col items-center space-y-0.5">
+        <i class="ph ph-wind text-lg"></i>
+        <span>Midwest (35)</span>
       </button>
-
-      <button onclick="switchRegion('west')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-slate-400 active:scale-95 transition" data-region="west">
-        <i class="ph-bold ph-mountains text-lg"></i>
-        <span class="text-[10px] font-bold mt-0.5">West</span>
+      <button onclick="switchQuadrant('west')" id="nav-west" class="py-1 flex flex-col items-center space-y-0.5">
+        <i class="ph ph-mountains text-lg"></i>
+        <span>West (35)</span>
       </button>
-
-      <button onclick="switchRegion('finals')" class="nav-tab flex flex-col items-center py-1.5 px-1 rounded-xl text-amber-400/80 active:scale-95 transition" data-region="finals">
-        <i class="ph-fill ph-crown text-lg text-amber-400"></i>
-        <span class="text-[10px] font-bold mt-0.5">Finals</span>
+      <button onclick="switchQuadrant('finals')" id="nav-finals" class="py-1 flex flex-col items-center space-y-0.5 text-amber-400">
+        <i class="ph ph-crown text-lg"></i>
+        <span>Finals</span>
       </button>
-
     </div>
   </nav>
 
-  <!-- TOAST NOTIFICATION CONTAINER -->
-  <div id="toast" class="no-print fixed bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-200">
-    <div class="bg-slate-900 border border-slate-700 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2">
-      <i id="toastIcon" class="ph-bold ph-info text-blue-400 text-base"></i>
-      <span id="toastMsg" class="font-medium">Notification</span>
+  <!-- Seeding & Shuffle Modal -->
+  <div id="seedModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-3 backdrop-blur-sm">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full max-h-[88vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i class="ph ph-faders text-blue-400 text-xl"></i>
+          <h2 class="font-bold text-white text-sm uppercase tracking-wider">Quadrant Seeding Engine</h2>
+        </div>
+        <button onclick="closeSeedingModal()" class="text-gray-400 hover:text-white p-1">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-3 bg-gray-950/70 border-b border-gray-800 flex items-center justify-between gap-2">
+        <span class="text-xs text-gray-400">Active Quadrant: <strong id="modalRegionTitle" class="text-white capitalize">East</strong></span>
+        <div class="flex space-x-2">
+          <button onclick="shuffleCurrentQuadrant()" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded text-xs font-semibold flex items-center space-x-1">
+            <i class="ph ph-arrows-clockwise"></i>
+            <span>Shuffle This Region</span>
+          </button>
+          <button onclick="shuffleAllQuadrants()" class="px-2.5 py-1 bg-blue-600/30 hover:bg-blue-600/40 text-blue-300 border border-blue-500/40 rounded text-xs font-semibold flex items-center space-x-1">
+            <i class="ph ph-shuffle"></i>
+            <span>Shuffle All 138</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar" id="modalTeamsList">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="p-3 border-t border-gray-800 bg-gray-950 flex justify-end space-x-2">
+        <button onclick="closeSeedingModal()" class="px-4 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold">Done</button>
+      </div>
     </div>
   </div>
 
-  <!-- HIDDEN PDF RENDERING CANVAS -->
-  <div id="pdfExportContainer" class="hidden bg-white text-slate-900 p-6 font-sans">
-    <!-- Populated during PDF download -->
-  </div>
+  <!-- Hidden PDF Printable Container -->
+  <div id="pdfExportContainer" class="hidden"></div>
 
-  <!-- APPLICATION SCRIPTS -->
   <script>
-    /* ============================================================
-       1. DATA STRUCTURE: 138 TEAMS & TOURNAMENT SETUP
-       ============================================================ */
-    const TOURNAMENT_DATA = {
-      east: {
-        id: 'east',
-        name: 'East Quadrant',
-        color: '#3b82f6',
-        teamsCount: 34,
-        playIns: [
-          { id: 'E_PI1', name: 'East Play-In 1', teamA: { name: 'Delaware', seed: 33 }, teamB: { name: 'Temple', seed: 34 }, targetSlot: 'E_R1_7' },
-          { id: 'E_PI2', name: 'East Play-In 2', teamA: { name: 'Buffalo', seed: 31 }, teamB: { name: 'Massachusetts (UMass)', seed: 32 }, targetSlot: 'E_R1_1' }
-        ],
-        round128: [
-          { id: 'E_M1', seed1: 1, team1: 'Penn State', seed2: 32, team2: 'Buffalo / UMass', playInTarget: 'E_PI2' },
-          { id: 'E_M2', seed1: 16, team1: 'Boston College', seed2: 17, team2: 'Old Dominion' },
-          { id: 'E_M3', seed1: 8, team1: 'Syracuse', seed2: 25, team2: 'Connecticut (UConn)' },
-          { id: 'E_M4', seed1: 9, team1: 'Maryland', seed2: 24, team2: 'Marshall' },
-          { id: 'E_M5', seed1: 5, team1: 'Clemson', seed2: 28, team2: 'Akron' },
-          { id: 'E_M6', seed1: 12, team1: 'North Carolina', seed2: 21, team2: 'James Madison' },
-          { id: 'E_M7', seed1: 4, team1: 'Miami (FL)', seed2: 29, team2: 'Delaware / Temple', playInTarget: 'E_PI1' },
-          { id: 'E_M8', seed1: 13, team1: 'NC State', seed2: 20, team2: 'East Carolina' },
-          { id: 'E_M9', seed1: 2, team1: 'Notre Dame', seed2: 31, team2: 'Kent State' },
-          { id: 'E_M10', seed1: 15, team1: 'Rutgers', seed2: 18, team2: 'Army West Point' },
-          { id: 'E_M11', seed1: 7, team1: 'Pittsburgh', seed2: 26, team2: 'Navy' },
-          { id: 'E_M12', seed1: 10, team1: 'West Virginia', seed2: 23, team2: 'Coastal Carolina' },
-          { id: 'E_M13', seed1: 6, team1: 'South Carolina', seed2: 27, team2: 'Charlotte' },
-          { id: 'E_M14', seed1: 11, team1: 'Virginia Tech', seed2: 22, team2: 'Appalachian State' },
-          { id: 'E_M15', seed1: 3, team1: 'Virginia', seed2: 30, team2: 'Liberty' },
-          { id: 'E_M16', seed1: 14, team1: 'Duke', seed2: 19, team2: 'Wake Forest' }
-        ]
-      },
-      south: {
-        id: 'south',
-        name: 'South Quadrant',
-        color: '#f59e0b',
-        teamsCount: 34,
-        playIns: [
-          { id: 'S_PI1', name: 'South Play-In 1', teamA: { name: 'Kennesaw State', seed: 33 }, teamB: { name: 'FIU', seed: 34 }, targetSlot: 'S_R1_7' },
-          { id: 'S_PI2', name: 'South Play-In 2', teamA: { name: 'Louisiana-Monroe', seed: 31 }, teamB: { name: 'Southern Miss', seed: 32 }, targetSlot: 'S_R1_1' }
-        ],
-        round128: [
-          { id: 'S_M1', seed1: 1, team1: 'Georgia', seed2: 32, team2: 'ULM / So. Miss', playInTarget: 'S_PI2' },
-          { id: 'S_M2', seed1: 16, team1: 'Florida', seed2: 17, team2: 'UCF' },
-          { id: 'S_M3', seed1: 8, team1: 'Vanderbilt', seed2: 25, team2: 'South Florida (USF)' },
-          { id: 'S_M4', seed1: 9, team1: 'Georgia Tech', seed2: 24, team2: 'Florida State' },
-          { id: 'S_M5', seed1: 5, team1: 'LSU', seed2: 28, team2: 'Middle Tennessee' },
-          { id: 'S_M6', seed1: 12, team1: 'Tulane', seed2: 21, team2: 'Georgia Southern' },
-          { id: 'S_M7', seed1: 4, team1: 'Ole Miss', seed2: 29, team2: 'Kennesaw / FIU', playInTarget: 'S_PI1' },
-          { id: 'S_M8', seed1: 13, team1: 'Auburn', seed2: 20, team2: 'South Alabama' },
-          { id: 'S_M9', seed1: 2, team1: 'Alabama', seed2: 31, team2: 'Georgia State' },
-          { id: 'S_M10', seed1: 15, team1: 'Memphis', seed2: 18, team2: 'Western Kentucky' },
-          { id: 'S_M11', seed1: 7, team1: 'Louisville', seed2: 26, team2: 'Florida Atlantic' },
-          { id: 'S_M12', seed1: 10, team1: 'Kentucky', seed2: 23, team2: 'Troy' },
-          { id: 'S_M13', seed1: 6, team1: 'Arkansas', seed2: 27, team2: 'UAB' },
-          { id: 'S_M14', seed1: 11, team1: 'Mississippi State', seed2: 22, team2: 'Louisiana (ULL)' },
-          { id: 'S_M15', seed1: 3, team1: 'Tennessee', seed2: 30, team2: 'Jacksonville State' },
-          { id: 'S_M16', seed1: 14, team1: 'Arkansas State', seed2: 19, team2: 'Louisiana Tech' }
-        ]
-      },
-      midwest: {
-        id: 'midwest',
-        name: 'Midwest Quadrant',
-        color: '#10b981',
-        teamsCount: 35,
-        playIns: [
-          { id: 'M_PI1', name: 'Midwest Play-In 1', teamA: { name: 'Ball State', seed: 33 }, teamB: { name: 'Eastern Michigan', seed: 34 }, targetSlot: 'M_R1_9' },
-          { id: 'M_PI2', name: 'Midwest Play-In 2', teamA: { name: 'Central Michigan', seed: 31 }, teamB: { name: 'Northern Illinois', seed: 32 }, targetSlot: 'M_R1_7' },
-          { id: 'M_PI3', name: 'Midwest Play-In 3', teamA: { name: 'Missouri State', seed: 35 }, teamB: { name: 'Western Michigan', seed: 36 }, targetSlot: 'M_R1_1' }
-        ],
-        round128: [
-          { id: 'M_M1', seed1: 1, team1: 'Ohio State', seed2: 32, team2: 'Mo. State / WMU', playInTarget: 'M_PI3' },
-          { id: 'M_M2', seed1: 16, team1: 'Northwestern', seed2: 17, team2: 'Cincinnati' },
-          { id: 'M_M3', seed1: 8, team1: 'Iowa', seed2: 25, team2: 'Miami (OH)' },
-          { id: 'M_M4', seed1: 9, team1: 'Nebraska', seed2: 24, team2: 'Bowling Green' },
-          { id: 'M_M5', seed1: 5, team1: 'Illinois', seed2: 28, team2: 'Purdue' },
-          { id: 'M_M6', seed1: 12, team1: 'Kansas State', seed2: 21, team2: 'Ohio' },
-          { id: 'M_M7', seed1: 4, team1: 'Missouri', seed2: 29, team2: 'CMU / NIU', playInTarget: 'M_PI2' },
-          { id: 'M_M8', seed1: 13, team1: 'Wisconsin', seed2: 20, team2: 'Toledo' },
-          { id: 'M_M9', seed1: 2, team1: 'Indiana', seed2: 31, team2: 'Ball St / EMU', playInTarget: 'M_PI1' },
-          { id: 'M_M10', seed1: 15, team1: 'Minnesota', seed2: 18, team2: 'Michigan State' },
-          { id: 'M_M11', seed1: 7, team1: 'Iowa State', seed2: 26, team2: 'Kansas' },
-          { id: 'M_M12', seed1: 10, team1: 'Oklahoma', seed2: 23, team2: 'Tulsa' },
-          { id: 'M_M13', seed1: 6, team1: 'Oklahoma State', seed2: 27, team2: 'North Texas' },
-          { id: 'M_M14', seed1: 11, team1: 'Texas A&M', seed2: 22, team2: 'Rice' },
-          { id: 'M_M15', seed1: 3, team1: 'Michigan', seed2: 30, team2: 'Sam Houston' },
-          { id: 'M_M16', seed1: 14, team1: 'SMU', seed2: 19, team2: 'Houston' }
-        ]
-      },
-      west: {
-        id: 'west',
-        name: 'West Quadrant',
-        color: '#a855f7',
-        teamsCount: 35,
-        playIns: [
-          { id: 'W_PI1', name: 'West Play-In 1', teamA: { name: 'New Mexico State', seed: 33 }, teamB: { name: 'UTEP', seed: 34 }, targetSlot: 'W_R1_9' },
-          { id: 'W_PI2', name: 'West Play-In 2', teamA: { name: 'Nevada', seed: 31 }, teamB: { name: 'Utah State', seed: 32 }, targetSlot: 'W_R1_7' },
-          { id: 'W_PI3', name: 'West Play-In 3', teamA: { name: 'San Jose State', seed: 35 }, teamB: { name: 'Hawaii', seed: 36 }, targetSlot: 'W_R1_1' }
-        ],
-        round128: [
-          { id: 'W_M1', seed1: 1, team1: 'Oregon', seed2: 32, team2: 'SJSU / Hawaii', playInTarget: 'W_PI3' },
-          { id: 'W_M2', seed1: 16, team1: 'Washington', seed2: 17, team2: 'Washington State' },
-          { id: 'W_M3', seed1: 8, team1: 'USC', seed2: 25, team2: 'San Diego State' },
-          { id: 'W_M4', seed1: 9, team1: 'Boise State', seed2: 24, team2: 'Fresno State' },
-          { id: 'W_M5', seed1: 5, team1: 'Texas', seed2: 28, team2: 'Texas State' },
-          { id: 'W_M6', seed1: 12, team1: 'TCU', seed2: 21, team2: 'UTSA' },
-          { id: 'W_M7', seed1: 4, team1: 'Texas Tech', seed2: 29, team2: 'Nevada / Utah St', playInTarget: 'W_PI2' },
-          { id: 'W_M8', seed1: 13, team1: 'Baylor', seed2: 20, team2: 'New Mexico' },
-          { id: 'W_M9', seed1: 2, team1: 'BYU', seed2: 31, team2: 'NMSU / UTEP', playInTarget: 'W_PI1' },
-          { id: 'W_M10', seed1: 15, team1: 'Arizona', seed2: 18, team2: 'Oregon State' },
-          { id: 'W_M11', seed1: 7, team1: 'Arizona State', seed2: 26, team2: 'California' },
-          { id: 'W_M12', seed1: 10, team1: 'Colorado', seed2: 23, team2: 'UNLV' },
-          { id: 'W_M13', seed1: 6, team1: 'UCLA', seed2: 27, team2: 'Stanford' },
-          { id: 'W_M14', seed1: 11, team1: 'Colorado State', seed2: 22, team2: 'Wyoming' },
-          { id: 'W_M15', seed1: 3, team1: 'Utah', seed2: 30, team2: 'Air Force' },
-          { id: 'W_M16', seed1: 14, team1: 'North Texas (MW)', seed2: 19, team2: 'Sam Houston (MW)' }
-        ]
-      }
+    // Master FBS 138 Team Database by Quadrant
+    const DEFAULT_TEAMS = {
+      east: [
+        "Penn State", "Georgia", "Miami (FL)", "Clemson", "Indiana", "Army", "SMU", "Pittsburgh", 
+        "Syracuse", "Louisville", "Duke", "Virginia", "North Carolina", "Boston College", "Wake Forest", 
+        "Virginia Tech", "NC State", "West Virginia", "Navy", "East Carolina", "South Florida", "Temple", 
+        "Charlotte", "FAU", "FIU", "Liberty", "James Madison", "Old Dominion", "Appalachian State", 
+        "Marshall", "Coastal Carolina", "Georgia Southern", "Georgia State", "Kennesaw State"
+      ],
+      south: [
+        "Texas", "Tennessee", "Alabama", "Ole Miss", "Texas A&M", "LSU", "Missouri", "South Carolina", 
+        "Vanderbilt", "Florida", "Arkansas", "Auburn", "Kentucky", "Mississippi State", "Tulane", 
+        "Memphis", "UTSA", "North Texas", "Rice", "Tulsa", "UAB", "Louisiana", "Troy", "Texas State", 
+        "South Alabama", "Southern Miss", "ULM", "Arkansas State", "Jacksonville State", "Western Kentucky", 
+        "Middle Tennessee", "Sam Houston", "UTEP", "Louisiana Tech"
+      ],
+      midwest: [
+        "Ohio State", "Notre Dame", "Iowa State", "BYU", "Kansas State", "Illinois", "Michigan", 
+        "Wisconsin", "Minnesota", "Iowa", "Nebraska", "Michigan State", "Rutgers", "Maryland", "Purdue", 
+        "Northwestern", "Cincinnati", "Kansas", "Toledo", "Bowling Green", "Western Michigan", "Miami (OH)", 
+        "Ohio", "Buffalo", "Northern Illinois", "Eastern Michigan", "Central Michigan", "Ball State", 
+        "Akron", "Kent State", "UMass", "UConn", "Missouri State", "Delaware", "Indiana State"
+      ],
+      west: [
+        "Oregon", "Boise State", "Colorado", "Arizona State", "Washington State", "UNLV", "Utah", 
+        "USC", "Washington", "Arizona", "TCU", "Baylor", "Texas Tech", "Houston", "Oklahoma State", 
+        "UCF", "Colorado State", "San Jose State", "Fresno State", "Hawaii", "Nevada", "Wyoming", 
+        "Utah State", "New Mexico", "Air Force", "San Diego State", "Oregon State", "Stanford", 
+        "California", "New Mexico State", "UTSA State", "Idaho State", "Montana State", "Sacramento State", "Weber State"
+      ]
     };
 
-    /* User Picks State */
-    const PICKS = {};
-    let CURRENT_REGION = 'east';
-    let CURRENT_ROUND = 'r128';
+    // State
+    let currentQuadrant = 'east';
+    let activeRound = 'playin';
+    let teamData = JSON.parse(localStorage.getItem('fbs_custom_teams')) || JSON.parse(JSON.stringify(DEFAULT_TEAMS));
+    let bracketPicks = JSON.parse(localStorage.getItem('fbs_bracket_picks')) || {};
 
-    /* Round sequence per quadrant */
-    const REGION_ROUNDS = [
-      { key: 'playin', label: 'Play-In' },
-      { key: 'r128', label: 'Round of 128' },
-      { key: 'r64', label: 'Round of 64' },
-      { key: 's16', label: 'Sweet 16' },
-      { key: 'e8', label: 'Elite 8' },
-      { key: 'champ', label: 'Region Final' }
-    ];
+    const QUADRANTS = ['east', 'south', 'midwest', 'west'];
 
-    /* ============================================================
-       2. APPLICATION LIFECYCLE & STORAGE
-       ============================================================ */
-    window.addEventListener('DOMContentLoaded', () => {
-      loadPicks();
-      renderApp();
-      updateProgress();
-    });
-
-    function savePicks() {
-      try {
-        localStorage.setItem('fbs_138_picks_mobile', JSON.stringify(PICKS));
-      } catch (e) {
-        console.warn('LocalStorage save failed', e);
-      }
-    }
-
-    function loadPicks() {
-      try {
-        const saved = localStorage.getItem('fbs_138_picks_mobile');
-        if (saved) {
-          Object.assign(PICKS, JSON.parse(saved));
-        }
-      } catch (e) {
-        console.warn('LocalStorage load failed', e);
-      }
-    }
-
-    /* ============================================================
-       3. BRACKET PICK ENGINE & DYNAMIC PROPAGATION
-       ============================================================ */
-    function selectWinner(gameId, winningTeam) {
-      if (!winningTeam || !winningTeam.name) return;
-
-      const previousWinner = PICKS[gameId];
-      if (previousWinner && previousWinner.name === winningTeam.name) {
-        return; // Already selected
-      }
-
-      // If winner changed, purge downstream games that used old winner
-      if (previousWinner) {
-        purgeDownstream(gameId, previousWinner.name);
-      }
-
-      PICKS[gameId] = {
-        name: winningTeam.name,
-        seed: winningTeam.seed
-      };
-
-      savePicks();
-      renderApp();
+    function saveState() {
+      localStorage.setItem('fbs_custom_teams', JSON.stringify(teamData));
+      localStorage.setItem('fbs_bracket_picks', JSON.stringify(bracketPicks));
       updateProgress();
     }
 
-    function purgeDownstream(triggerGameId, oldTeamName) {
-      for (const [id, pick] of Object.entries(PICKS)) {
-        if (id !== triggerGameId && pick.name === oldTeamName) {
-          delete PICKS[id];
-          // Recursively clean
-          purgeDownstream(id, oldTeamName);
-        }
-      }
+    function init() {
+      switchQuadrant(currentQuadrant);
+      updateProgress();
     }
 
-    function getWinner(gameId) {
-      return PICKS[gameId] || null;
-    }
-
-    /* ============================================================
-       4. MOBILE NAVIGATION ROUTER
-       ============================================================ */
-    function switchRegion(regionKey) {
-      CURRENT_REGION = regionKey;
-      if (regionKey === 'finals') {
-        CURRENT_ROUND = 'national';
-      } else {
-        CURRENT_ROUND = 'r128';
+    function switchQuadrant(quad) {
+      currentQuadrant = quad;
+      document.querySelectorAll('nav button').forEach(b => {
+        b.classList.remove('text-blue-400', 'text-amber-400');
+        b.classList.add('text-gray-400');
+      });
+      const activeNav = document.getElementById(`nav-${quad}`);
+      if (activeNav) {
+        activeNav.classList.remove('text-gray-400');
+        activeNav.classList.add(quad === 'finals' ? 'text-amber-400' : 'text-blue-400');
       }
 
-      // Update bottom nav bar styles
-      document.querySelectorAll('.nav-tab').forEach(tab => {
-        if (tab.dataset.region === regionKey) {
-          tab.classList.add('text-blue-400', 'bg-slate-800/80');
-          tab.classList.remove('text-slate-400');
-        } else {
-          tab.classList.remove('text-blue-400', 'bg-slate-800/80');
-          tab.classList.add('text-slate-400');
+      renderRoundFilters();
+      renderScreen();
+    }
+
+    function renderRoundFilters() {
+      const container = document.getElementById('roundFilterContainer');
+      const navBar = document.getElementById('roundFilterNav');
+      if (currentQuadrant === 'finals') {
+        navBar.classList.add('hidden');
+        return;
+      }
+      navBar.classList.remove('hidden');
+
+      const rounds = [
+        { id: 'playin', label: 'Play-In' },
+        { id: 'r128', label: 'Round of 128' },
+        { id: 'r64', label: 'Round of 64' },
+        { id: 'sweet16', label: 'Sweet 16' },
+        { id: 'elite8', label: 'Elite 8' },
+        { id: 'regionfinal', label: 'Region Final' }
+      ];
+
+      container.innerHTML = rounds.map(r => `
+        <button onclick="setRound('${r.id}')" class="px-3 py-1 rounded-full whitespace-nowrap transition-colors ${activeRound === r.id ? 'bg-blue-600 text-white font-semibold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}">
+          ${r.label}
+        </button>
+      `).join('');
+    }
+
+    function setRound(r) {
+      activeRound = r;
+      renderRoundFilters();
+      renderScreen();
+    }
+
+    // Quadrant Bracket Builders
+    function getQuadrantMatchups(quad) {
+      const teams = teamData[quad];
+      const count = teams.length;
+      const playInCount = count - 32; // e.g. 34 - 32 = 2 play-in games
+
+      // Play-ins
+      let playIns = [];
+      for (let i = 0; i < playInCount; i++) {
+        const seedA = 32 - playInCount + i + 1;
+        const seedB = seedA + playInCount;
+        playIns.push({
+          id: `${quad}_pi_${i}`,
+          round: 'playin',
+          teamA: teams[seedA - 1] || `Team ${seedA}`,
+          seedA: seedA,
+          teamB: teams[seedB - 1] || `Team ${seedB}`,
+          seedB: seedB,
+          nextMatchId: `${quad}_r128_${31 - playInCount + i}`
+        });
+      }
+
+      // Round of 128 (32 teams -> 16 matches per quadrant)
+      let r128 = [];
+      const pairings = [
+        [1, 32], [16, 17], [8, 25], [9, 24],
+        [5, 28], [12, 21], [4, 29], [13, 20],
+        [6, 27], [11, 22], [3, 30], [14, 19],
+        [7, 26], [10, 23], [2, 31], [15, 18]
+      ];
+
+      pairings.forEach((pair, idx) => {
+        let teamA = teams[pair[0] - 1];
+        let seedA = pair[0];
+        let teamB = teams[pair[1] - 1];
+        let seedB = pair[1];
+
+        // Check if seed B came from play-in
+        const piMatch = playIns.find(p => p.seedA === seedB);
+        if (piMatch) {
+          teamB = bracketPicks[piMatch.id] || `Winner of ${piMatch.teamA}/${piMatch.teamB}`;
         }
+
+        r128.push({
+          id: `${quad}_r128_${idx}`,
+          round: 'r128',
+          teamA, seedA,
+          teamB, seedB,
+          nextMatchId: `${quad}_r64_${Math.floor(idx / 2)}`,
+          slot: idx % 2 === 0 ? 'A' : 'B'
+        });
       });
 
-      renderApp();
-    }
-
-    function switchRound(roundKey) {
-      CURRENT_ROUND = roundKey;
-      renderApp();
-    }
-
-    function advanceToNextRoundTab() {
-      const idx = REGION_ROUNDS.findIndex(r => r.key === CURRENT_ROUND);
-      if (idx !== -1 && idx < REGION_ROUNDS.length - 1) {
-        switchRound(REGION_ROUNDS[idx + 1].key);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (idx === REGION_ROUNDS.length - 1) {
-        switchRegion('finals');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Round of 64 (8 matches)
+      let r64 = [];
+      for (let i = 0; i < 8; i++) {
+        const m1 = r128[i * 2];
+        const m2 = r128[i * 2 + 1];
+        r64.push({
+          id: `${quad}_r64_${i}`,
+          round: 'r64',
+          teamA: bracketPicks[m1.id] || `Winner Game ${i * 2 + 1}`,
+          teamB: bracketPicks[m2.id] || `Winner Game ${i * 2 + 2}`,
+          nextMatchId: `${quad}_s16_${Math.floor(i / 2)}`,
+          slot: i % 2 === 0 ? 'A' : 'B'
+        });
       }
+
+      // Sweet 16 (4 matches)
+      let s16 = [];
+      for (let i = 0; i < 4; i++) {
+        const m1 = r64[i * 2];
+        const m2 = r64[i * 2 + 1];
+        s16.push({
+          id: `${quad}_s16_${i}`,
+          round: 'sweet16',
+          teamA: bracketPicks[m1.id] || `Winner R64 #${i * 2 + 1}`,
+          teamB: bracketPicks[m2.id] || `Winner R64 #${i * 2 + 2}`,
+          nextMatchId: `${quad}_e8_${Math.floor(i / 2)}`,
+          slot: i % 2 === 0 ? 'A' : 'B'
+        });
+      }
+
+      // Elite 8 (2 matches)
+      let e8 = [];
+      for (let i = 0; i < 2; i++) {
+        const m1 = s16[i * 2];
+        const m2 = s16[i * 2 + 1];
+        e8.push({
+          id: `${quad}_e8_${i}`,
+          round: 'elite8',
+          teamA: bracketPicks[m1.id] || `Winner S16 #${i * 2 + 1}`,
+          teamB: bracketPicks[m2.id] || `Winner S16 #${i * 2 + 2}`,
+          nextMatchId: `${quad}_rf_0`,
+          slot: i === 0 ? 'A' : 'B'
+        });
+      }
+
+      // Regional Final (1 match)
+      const rf = [{
+        id: `${quad}_rf_0`,
+        round: 'regionfinal',
+        teamA: bracketPicks[e8[0].id] || `Winner Elite 8 #1`,
+        teamB: bracketPicks[e8[1].id] || `Winner Elite 8 #2`,
+        nextMatchId: `final_semi_${quad === 'east' || quad === 'south' ? 0 : 1}`,
+        slot: quad === 'east' || quad === 'midwest' ? 'A' : 'B'
+      }];
+
+      return { playin: playIns, r128, r64, sweet16: s16, elite8: e8, regionfinal: rf };
     }
 
-    /* ============================================================
-       5. COMPONENT BUILDERS (CARDS, MATCHUPS, ROUNDS)
-       ============================================================ */
-    function renderMatchupCard(gameId, teamA, teamB, label, subtitle) {
-      const winner = getWinner(gameId);
-
-      const isA = winner && teamA && winner.name === teamA.name;
-      const isB = winner && teamB && winner.name === teamB.name;
-      const isAElim = winner && teamA && winner.name !== teamA.name;
-      const isBElim = winner && teamB && winner.name !== teamB.name;
-
-      const hasA = teamA && teamA.name;
-      const hasB = teamB && teamB.name;
-
-      return `
-        <div class="bg-slate-900 border ${winner ? 'border-blue-900/50' : 'border-slate-800'} rounded-2xl overflow-hidden shadow-sm transition">
-          <div class="bg-slate-950/70 px-3 py-1.5 border-b border-slate-800/70 flex items-center justify-between text-[11px] text-slate-400">
-            <span class="font-bold text-slate-300 font-mono tracking-tight">${label}</span>
-            <div class="flex items-center gap-1.5">
-              ${subtitle ? `<span class="text-slate-500 text-[10px]">${subtitle}</span>` : ''}
-              ${winner ? '<span class="text-blue-400 font-bold flex items-center gap-1"><i class="ph-bold ph-check"></i> Selected</span>' : '<span class="text-amber-400/80 font-medium">Tap to Pick</span>'}
-            </div>
-          </div>
-
-          <div class="p-2 space-y-1.5">
-            <!-- Team A Button -->
-            <button type="button"
-                    onclick="${hasA ? `selectWinner('${gameId}', {name: '${escapeQuotes(teamA.name)}', seed: '${teamA.seed || ''}'})` : ''}"
-                    class="team-btn w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/40 text-left text-xs ${isA ? 'winner' : ''} ${isAElim ? 'eliminated' : ''} ${!hasA ? 'disabled text-slate-600 italic cursor-not-allowed' : 'text-slate-100 hover:border-slate-700'}">
-              <div class="flex items-center gap-2 truncate pr-2">
-                ${teamA && teamA.seed ? `<span class="w-6 h-5 flex items-center justify-center text-[10px] font-mono font-black bg-slate-800 text-blue-400 rounded-md shrink-0">#${teamA.seed}</span>` : ''}
-                <span class="font-semibold truncate text-[13px]">${hasA ? teamA.name : 'Waiting for Previous Round'}</span>
-              </div>
-              <div class="shrink-0 pl-1">
-                ${isA ? '<i class="ph-fill ph-check-circle text-blue-400 text-lg"></i>' : '<div class="w-4 h-4 rounded-full border border-slate-700"></div>'}
-              </div>
-            </button>
-
-            <!-- Team B Button -->
-            <button type="button"
-                    onclick="${hasB ? `selectWinner('${gameId}', {name: '${escapeQuotes(teamB.name)}', seed: '${teamB.seed || ''}'})` : ''}"
-                    class="team-btn w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/40 text-left text-xs ${isB ? 'winner' : ''} ${isBElim ? 'eliminated' : ''} ${!hasB ? 'disabled text-slate-600 italic cursor-not-allowed' : 'text-slate-100 hover:border-slate-700'}">
-              <div class="flex items-center gap-2 truncate pr-2">
-                ${teamB && teamB.seed ? `<span class="w-6 h-5 flex items-center justify-center text-[10px] font-mono font-black bg-slate-800 text-blue-400 rounded-md shrink-0">#${teamB.seed}</span>` : ''}
-                <span class="font-semibold truncate text-[13px]">${hasB ? teamB.name : 'Waiting for Previous Round'}</span>
-              </div>
-              <div class="shrink-0 pl-1">
-                ${isB ? '<i class="ph-fill ph-check-circle text-blue-400 text-lg"></i>' : '<div class="w-4 h-4 rounded-full border border-slate-700"></div>'}
-              </div>
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    function escapeQuotes(str) {
-      if (!str) return '';
-      return str.replace(/'/g, "\\'");
-    }
-
-    /* ============================================================
-       6. MASTER RENDER ROUTER
-       ============================================================ */
-    function renderApp() {
-      // 1. If in Finals
-      if (CURRENT_REGION === 'finals') {
-        renderFinalsView();
+    function renderScreen() {
+      const container = document.getElementById('activeScreenContainer');
+      if (currentQuadrant === 'finals') {
+        renderFinals(container);
         return;
       }
 
-      const reg = TOURNAMENT_DATA[CURRENT_REGION];
-      if (!reg) return;
+      const matches = getQuadrantMatchups(currentQuadrant)[activeRound] || [];
+      const regionName = currentQuadrant.toUpperCase();
 
-      // Update Region Header Banner
-      const headingEl = document.getElementById('regionHeading');
-      const subHeadingEl = document.getElementById('regionSubheading');
-      const dotEl = document.getElementById('regionIndicatorDot');
-      const champBannerEl = document.getElementById('regionWinnerBanner');
-
-      if (headingEl) headingEl.textContent = reg.name;
-      if (subHeadingEl) subHeadingEl.textContent = `${reg.teamsCount} Programs • ${reg.playIns.length} Play-Ins`;
-      if (dotEl) dotEl.style.backgroundColor = reg.color;
-
-      const regWinner = getWinner(`${CURRENT_REGION.toUpperCase()}_CHAMP`);
-      if (champBannerEl) {
-        if (regWinner) {
-          champBannerEl.textContent = regWinner.name;
-          champBannerEl.className = 'text-xs font-bold text-amber-400 truncate max-w-[140px] block';
-        } else {
-          champBannerEl.textContent = 'Undecided';
-          champBannerEl.className = 'text-xs font-bold text-slate-500 truncate max-w-[140px] block';
-        }
-      }
-
-      // Render Round selector pills
-      renderRoundPills();
-
-      // Render Matchups for current round
-      renderCurrentRoundMatchups();
-
-      // Show Jump button if not at final round
-      const jumpBar = document.getElementById('nextRoundJumpBar');
-      if (jumpBar) {
-        jumpBar.classList.remove('hidden');
-      }
-    }
-
-    function renderRoundPills() {
-      const pillContainer = document.getElementById('roundPillContainer');
-      if (!pillContainer) return;
-
-      pillContainer.innerHTML = REGION_ROUNDS.map(r => {
-        const isActive = CURRENT_ROUND === r.key;
-        return `
-          <button onclick="switchRound('${r.key}')" 
-                  class="px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 ${isActive ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">
-            ${r.label}
-          </button>
-        `;
-      }).join('');
-    }
-
-    function renderCurrentRoundMatchups() {
-      const container = document.getElementById('matchupListContainer');
-      if (!container) return;
-
-      const reg = TOURNAMENT_DATA[CURRENT_REGION];
-      const rKeyUpper = CURRENT_REGION.toUpperCase();
-
-      // Compute Round of 128 matchups with play-in winners
-      const r128 = reg.round128.map(m => {
-        let teamBName = m.team2;
-        if (m.playInTarget) {
-          const piWin = getWinner(m.playInTarget);
-          teamBName = piWin ? piWin.name : `Winner of ${m.playInTarget}`;
-        }
-        return {
-          id: m.id,
-          teamA: { name: m.team1, seed: m.seed1 },
-          teamB: { name: teamBName, seed: m.seed2 }
-        };
-      });
-
-      // Round 2 (Round of 64) -> 8 games
-      const r64 = [];
-      for (let i = 0; i < 8; i++) {
-        const id = `${rKeyUpper}_R64_${i+1}`;
-        const tA = getWinner(r128[i * 2].id);
-        const tB = getWinner(r128[i * 2 + 1].id);
-        r64.push({ id, teamA: tA, teamB: tB, label: `Round of 64 - Match ${i+1}` });
-      }
-
-      // Round 3 (Sweet 16) -> 4 games
-      const s16 = [];
-      for (let i = 0; i < 4; i++) {
-        const id = `${rKeyUpper}_S16_${i+1}`;
-        const tA = getWinner(r64[i * 2].id);
-        const tB = getWinner(r64[i * 2 + 1].id);
-        s16.push({ id, teamA: tA, teamB: tB, label: `Sweet 16 - Match ${i+1}` });
-      }
-
-      // Round 4 (Elite 8) -> 2 games
-      const e8 = [];
-      for (let i = 0; i < 2; i++) {
-        const id = `${rKeyUpper}_E8_${i+1}`;
-        const tA = getWinner(s16[i * 2].id);
-        const tB = getWinner(s16[i * 2 + 1].id);
-        e8.push({ id, teamA: tA, teamB: tB, label: `Regional Semifinal ${i+1}` });
-      }
-
-      // Round 5 (Regional Championship)
-      const regChampId = `${rKeyUpper}_CHAMP`;
-      const regTeamA = getWinner(e8[0].id);
-      const regTeamB = getWinner(e8[1].id);
-
-      // Render based on CURRENT_ROUND tab
-      if (CURRENT_ROUND === 'playin') {
+      if (matches.length === 0) {
         container.innerHTML = `
-          <div class="p-3 bg-blue-950/20 border border-blue-900/40 rounded-xl mb-3 text-xs text-blue-300">
-            <strong>First Four Play-Ins:</strong> Winners immediately secure their Round of 128 tournament spots below.
-          </div>
-          <div class="space-y-3">
-            ${reg.playIns.map((pi, idx) => renderMatchupCard(pi.id, pi.teamA, pi.teamB, pi.name, 'First Four Slot')).join('')}
-          </div>
-        `;
-      } else if (CURRENT_ROUND === 'r128') {
-        container.innerHTML = r128.map((m, idx) => renderMatchupCard(m.id, m.teamA, m.teamB, `R128 Game ${idx+1}`, 'Campus Site')).join('');
-      } else if (CURRENT_ROUND === 'r64') {
-        container.innerHTML = r64.map(m => renderMatchupCard(m.id, m.teamA, m.teamB, m.label, 'Round of 64')).join('');
-      } else if (CURRENT_ROUND === 's16') {
-        container.innerHTML = s16.map(m => renderMatchupCard(m.id, m.teamA, m.teamB, m.label, 'Sweet 16')).join('');
-      } else if (CURRENT_ROUND === 'e8') {
-        container.innerHTML = e8.map(m => renderMatchupCard(m.id, m.teamA, m.teamB, m.label, 'Regional Semis')).join('');
-      } else if (CURRENT_ROUND === 'champ') {
-        const regWinner = getWinner(regChampId);
-        container.innerHTML = `
-          <div class="bg-gradient-to-b from-blue-950/30 to-slate-900 border border-blue-900/50 p-4 rounded-2xl shadow-xl space-y-3">
-            <div class="text-center">
-              <span class="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-900/40 px-2 py-0.5 rounded-full border border-blue-800">
-                ${reg.name} Championship
-              </span>
-              <h3 class="text-lg font-black uppercase text-white mt-1">Regional Final</h3>
-              <p class="text-xs text-slate-400">Winner punches ticket to the College Football Final Four</p>
-            </div>
-
-            ${renderMatchupCard(regChampId, regTeamA, regTeamB, `${reg.name} Crown`, 'Final Four Berth')}
-
-            <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-xl text-center">
-              <span class="text-[10px] text-slate-400 block uppercase font-bold">Regional Champion</span>
-              <span class="text-base font-black text-amber-400 uppercase tracking-wide block mt-0.5">
-                ${regWinner ? regWinner.name : 'Awaiting Selection'}
-              </span>
-            </div>
+          <div class="text-center py-12 bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <i class="ph ph-check-circle text-emerald-400 text-4xl mb-2"></i>
+            <h3 class="font-bold text-white text-base">No Play-In Games Needed</h3>
+            <p class="text-xs text-gray-400 mt-1">This quadrant has exactly 32 seeded programs.</p>
+            <button onclick="setRound('r128')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold">Jump to Round of 128</button>
           </div>
         `;
-      }
-    }
-
-    /* ============================================================
-       7. FINAL FOUR & NATIONAL TITLE DASHBOARD
-       ============================================================ */
-    function renderFinalsView() {
-      const container = document.getElementById('matchupListContainer');
-      const roundPills = document.getElementById('roundPillContainer');
-      const jumpBar = document.getElementById('nextRoundJumpBar');
-      if (jumpBar) jumpBar.classList.add('hidden');
-
-      // Update header banner for finals
-      document.getElementById('regionHeading').textContent = 'National Championship Series';
-      document.getElementById('regionSubheading').textContent = 'The Final Four • Rose Bowl, Sugar Bowl & National Final';
-      document.getElementById('regionIndicatorDot').style.backgroundColor = '#f59e0b';
-
-      if (roundPills) {
-        roundPills.innerHTML = `
-          <div class="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs font-bold text-amber-300 flex items-center gap-1.5">
-            <i class="ph-fill ph-crown text-amber-400"></i> The Ultimate Crown
-          </div>
-        `;
-      }
-
-      const eastChamp = getWinner('EAST_CHAMP');
-      const southChamp = getWinner('SOUTH_CHAMP');
-      const midwestChamp = getWinner('MIDWEST_CHAMP');
-      const westChamp = getWinner('WEST_CHAMP');
-
-      const semi1Winner = getWinner('NAT_SEMI_1');
-      const semi2Winner = getWinner('NAT_SEMI_2');
-      const natChamp = getWinner('NAT_CHAMPIONSHIP');
-
-      // Update champion banner
-      const champBannerEl = document.getElementById('regionWinnerBanner');
-      if (champBannerEl) {
-        champBannerEl.textContent = natChamp ? natChamp.name : 'Undecided';
-        champBannerEl.className = natChamp ? 'text-xs font-black text-amber-400 truncate max-w-[140px] block' : 'text-xs font-bold text-slate-500 truncate max-w-[140px] block';
+        return;
       }
 
       container.innerHTML = `
-        <div class="space-y-4">
-          
-          <!-- Final Four Summary Strip -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
-              <span class="text-[9px] font-bold text-blue-400 uppercase block">East Champ</span>
-              <span class="text-xs font-bold text-white truncate block mt-0.5">${eastChamp ? eastChamp.name : '—'}</span>
+        <div class="flex items-center justify-between pb-1 border-b border-gray-800">
+          <div>
+            <h2 class="text-sm font-extrabold uppercase text-blue-400 tracking-wider">${regionName} REGION</h2>
+            <p class="text-[11px] text-gray-400">${activeRound.toUpperCase()} &bull; ${matches.length} Matchup${matches.length > 1 ? 's' : ''}</p>
+          </div>
+          <button onclick="advanceNextRoundPill()" class="text-xs font-semibold text-gray-400 hover:text-white flex items-center space-x-1">
+            <span>Next Round</span>
+            <i class="ph ph-caret-right"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${matches.map(m => renderMatchCard(m)).join('')}
+        </div>
+      `;
+    }
+
+    function renderMatchCard(m) {
+      const winner = bracketPicks[m.id];
+      const isPickA = winner && winner === m.teamA;
+      const isPickB = winner && winner === m.teamB;
+      const disabledA = !m.teamA || m.teamA.includes('Winner');
+      const disabledB = !m.teamB || m.teamB.includes('Winner');
+
+      return `
+        <div class="bg-gray-900 border ${winner ? 'border-blue-500/40 shadow-blue-950/20 shadow-lg' : 'border-gray-800'} rounded-xl p-3 space-y-2">
+          <!-- Team A -->
+          <div onclick="${!disabledA ? `selectWinner('${m.id}', '${escapeQuotes(m.teamA)}')` : ''}" 
+               class="card-team flex items-center justify-between p-2.5 rounded-lg border cursor-pointer ${
+                 isPickA 
+                   ? 'bg-blue-600/30 border-blue-500 text-white font-bold' 
+                   : disabledA 
+                     ? 'bg-gray-950/40 border-gray-800 text-gray-500 cursor-not-allowed' 
+                     : 'bg-gray-950/80 border-gray-800 hover:border-gray-700 text-gray-300'
+               }">
+            <div class="flex items-center space-x-2 truncate">
+              ${m.seedA ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded ${isPickA ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-400'}">${m.seedA}</span>` : ''}
+              <span class="text-xs truncate">${m.teamA}</span>
             </div>
-            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
-              <span class="text-[9px] font-bold text-amber-400 uppercase block">South Champ</span>
-              <span class="text-xs font-bold text-white truncate block mt-0.5">${southChamp ? southChamp.name : '—'}</span>
+            ${isPickA ? '<i class="ph ph-check-fat text-blue-400 text-sm"></i>' : ''}
+          </div>
+
+          <!-- Team B -->
+          <div onclick="${!disabledB ? `selectWinner('${m.id}', '${escapeQuotes(m.teamB)}')` : ''}" 
+               class="card-team flex items-center justify-between p-2.5 rounded-lg border cursor-pointer ${
+                 isPickB 
+                   ? 'bg-blue-600/30 border-blue-500 text-white font-bold' 
+                   : disabledB 
+                     ? 'bg-gray-950/40 border-gray-800 text-gray-500 cursor-not-allowed' 
+                     : 'bg-gray-950/80 border-gray-800 hover:border-gray-700 text-gray-300'
+               }">
+            <div class="flex items-center space-x-2 truncate">
+              ${m.seedB ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded ${isPickB ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-400'}">${m.seedB}</span>` : ''}
+              <span class="text-xs truncate">${m.teamB}</span>
             </div>
-            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
-              <span class="text-[9px] font-bold text-emerald-400 uppercase block">Midwest Champ</span>
-              <span class="text-xs font-bold text-white truncate block mt-0.5">${midwestChamp ? midwestChamp.name : '—'}</span>
-            </div>
-            <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
-              <span class="text-[9px] font-bold text-purple-400 uppercase block">West Champ</span>
-              <span class="text-xs font-bold text-white truncate block mt-0.5">${westChamp ? westChamp.name : '—'}</span>
-            </div>
+            ${isPickB ? '<i class="ph ph-check-fat text-blue-400 text-sm"></i>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFinals(container) {
+      const eastWinner = bracketPicks['east_rf_0'] || 'East Champion';
+      const southWinner = bracketPicks['south_rf_0'] || 'South Champion';
+      const midwestWinner = bracketPicks['midwest_rf_0'] || 'Midwest Champion';
+      const westWinner = bracketPicks['west_rf_0'] || 'West Champion';
+
+      const semi1Pick = bracketPicks['semi_0'];
+      const semi2Pick = bracketPicks['semi_1'];
+      const nationalChampion = bracketPicks['champ_0'];
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="text-center py-2">
+            <h2 class="text-lg font-black tracking-wider uppercase text-amber-400">National Championship Finals</h2>
+            <p class="text-xs text-gray-400">The Final Four & National Title Game</p>
+          </div>
+
+          <!-- National Champion Hero Banner -->
+          <div class="bg-gradient-to-b from-amber-500/20 to-gray-900 border-2 border-amber-500/40 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden">
+            <i class="ph ph-crown text-amber-400 text-5xl mb-2 animate-bounce"></i>
+            <span class="text-[11px] font-bold uppercase tracking-widest text-amber-400 block mb-1">National Champion</span>
+            <h3 class="text-2xl font-black text-white tracking-wide">${nationalChampion || 'Undetermined'}</h3>
           </div>
 
           <!-- Semifinals -->
-          <div class="space-y-3">
-            <div class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <i class="ph-bold ph-trophy text-amber-400"></i> National Semifinals
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Semifinal 1 (East vs South) -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-3.5 space-y-2">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Semifinal 1 &bull; East vs South</span>
+              <div onclick="${eastWinner !== 'East Champion' ? `selectWinner('semi_0', '${escapeQuotes(eastWinner)}')` : ''}" 
+                   class="card-team p-2.5 rounded-lg border flex items-center justify-between cursor-pointer ${semi1Pick === eastWinner && eastWinner !== 'East Champion' ? 'bg-amber-500/20 border-amber-500 text-white font-bold' : 'bg-gray-950 border-gray-800 text-gray-300'}">
+                <span class="text-xs truncate">${eastWinner}</span>
+                ${semi1Pick === eastWinner && eastWinner !== 'East Champion' ? '<i class="ph ph-check-fat text-amber-400"></i>' : ''}
+              </div>
+              <div onclick="${southWinner !== 'South Champion' ? `selectWinner('semi_0', '${escapeQuotes(southWinner)}')` : ''}" 
+                   class="card-team p-2.5 rounded-lg border flex items-center justify-between cursor-pointer ${semi1Pick === southWinner && southWinner !== 'South Champion' ? 'bg-amber-500/20 border-amber-500 text-white font-bold' : 'bg-gray-950 border-gray-800 text-gray-300'}">
+                <span class="text-xs truncate">${southWinner}</span>
+                ${semi1Pick === southWinner && southWinner !== 'South Champion' ? '<i class="ph ph-check-fat text-amber-400"></i>' : ''}
+              </div>
             </div>
-            ${renderMatchupCard('NAT_SEMI_1', eastChamp, midwestChamp, 'Semifinal 1 (Rose Bowl)', 'East vs Midwest')}
-            ${renderMatchupCard('NAT_SEMI_2', southChamp, westChamp, 'Semifinal 2 (Sugar Bowl)', 'South vs West')}
+
+            <!-- Semifinal 2 (Midwest vs West) -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-3.5 space-y-2">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Semifinal 2 &bull; Midwest vs West</span>
+              <div onclick="${midwestWinner !== 'Midwest Champion' ? `selectWinner('semi_1', '${escapeQuotes(midwestWinner)}')` : ''}" 
+                   class="card-team p-2.5 rounded-lg border flex items-center justify-between cursor-pointer ${semi2Pick === midwestWinner && midwestWinner !== 'Midwest Champion' ? 'bg-amber-500/20 border-amber-500 text-white font-bold' : 'bg-gray-950 border-gray-800 text-gray-300'}">
+                <span class="text-xs truncate">${midwestWinner}</span>
+                ${semi2Pick === midwestWinner && midwestWinner !== 'Midwest Champion' ? '<i class="ph ph-check-fat text-amber-400"></i>' : ''}
+              </div>
+              <div onclick="${westWinner !== 'West Champion' ? `selectWinner('semi_1', '${escapeQuotes(westWinner)}')` : ''}" 
+                   class="card-team p-2.5 rounded-lg border flex items-center justify-between cursor-pointer ${semi2Pick === westWinner && westWinner !== 'West Champion' ? 'bg-amber-500/20 border-amber-500 text-white font-bold' : 'bg-gray-950 border-gray-800 text-gray-300'}">
+                <span class="text-xs truncate">${westWinner}</span>
+                ${semi2Pick === westWinner && westWinner !== 'West Champion' ? '<i class="ph ph-check-fat text-amber-400"></i>' : ''}
+              </div>
+            </div>
           </div>
 
-          <!-- National Championship Crown Box -->
-          <div class="bg-gradient-to-b from-slate-900 via-blue-950/30 to-slate-900 border-2 border-amber-500/50 rounded-2xl p-4 shadow-2xl relative">
-            <div class="text-center mb-3">
-              <i class="ph-fill ph-trophy text-4xl text-amber-400 inline-block mb-1"></i>
-              <h3 class="text-lg font-black uppercase text-white tracking-tight">CFP National Championship Game</h3>
-              <p class="text-[11px] text-slate-400">Mercedes-Benz Stadium • Neutral Site</p>
-            </div>
-
-            ${renderMatchupCard('NAT_CHAMPIONSHIP', semi1Winner, semi2Winner, 'National Title Game', 'For the Trophy')}
-
-            <div class="mt-4 p-3 bg-slate-950/90 border border-amber-500/40 rounded-xl text-center">
-              <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">2026-2027 FBS National Champion</span>
-              <span class="text-xl font-black text-amber-400 uppercase tracking-wide block mt-1">
-                ${natChamp ? natChamp.name : 'Trophy Unclaimed'}
-              </span>
+          <!-- Championship Matchup -->
+          <div class="bg-gray-900 border border-amber-500/40 rounded-xl p-4 space-y-2">
+            <span class="text-[11px] font-bold text-amber-400 uppercase tracking-widest block text-center">National Championship Game</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <div onclick="${semi1Pick ? `selectWinner('champ_0', '${escapeQuotes(semi1Pick)}')` : ''}" 
+                   class="card-team p-3 rounded-lg border flex items-center justify-between cursor-pointer ${nationalChampion === semi1Pick && semi1Pick ? 'bg-amber-500/30 border-amber-400 text-white font-extrabold' : 'bg-gray-950 border-gray-800 text-gray-300'}">
+                <span class="text-xs truncate">${semi1Pick || 'Semifinal 1 Winner'}</span>
+                ${nationalChampion === semi1Pick && semi1Pick ? '<i class="ph ph-trophy text-amber-400 text-base"></i>' : ''}
+              </div>
+              <div onclick="${semi2Pick ? `selectWinner('champ_0', '${escapeQuotes(semi2Pick)}')` : ''}" 
+                   class="card-team p-3 rounded-lg border flex items-center justify-between cursor-pointer ${nationalChampion === semi2Pick && semi2Pick ? 'bg-amber-500/30 border-amber-400 text-white font-extrabold' : 'bg-gray-950 border-gray-800 text-gray-300'}">
+                <span class="text-xs truncate">${semi2Pick || 'Semifinal 2 Winner'}</span>
+                ${nationalChampion === semi2Pick && semi2Pick ? '<i class="ph ph-trophy text-amber-400 text-base"></i>' : ''}
+              </div>
             </div>
           </div>
-
         </div>
       `;
     }
 
-    /* ============================================================
-       8. PROGRESS & STATS
-       ============================================================ */
-    function updateProgress() {
-      const totalMatches = 137;
-      const count = Object.keys(PICKS).length;
-      const pct = Math.min(100, Math.round((count / totalMatches) * 100));
-
-      const bar = document.getElementById('progressBar');
-      const txt = document.getElementById('progressText');
-      const headerChamp = document.getElementById('quickChampHeader');
-
-      if (bar) bar.style.width = `${pct}%`;
-      if (txt) txt.textContent = `${count} / ${totalMatches} Picked`;
-
-      const champ = getWinner('NAT_CHAMPIONSHIP');
-      if (headerChamp) {
-        if (champ) {
-          headerChamp.textContent = `Champ: ${champ.name}`;
-          headerChamp.className = 'text-amber-400 font-bold truncate max-w-[140px] sm:max-w-[200px]';
-        } else {
-          headerChamp.textContent = 'Champ: Undecided';
-          headerChamp.className = 'text-slate-400 font-semibold truncate max-w-[140px] sm:max-w-[200px]';
-        }
-      }
+    function selectWinner(matchId, teamName) {
+      bracketPicks[matchId] = teamName;
+      saveState();
+      renderScreen();
     }
 
-    /* ============================================================
-       9. RANDOMIZE / AUTO-PICK & RESET
-       ============================================================ */
-    function randomizeAllPicks() {
-      // 1. Play-ins
-      ['east', 'south', 'midwest', 'west'].forEach(rKey => {
-        const reg = TOURNAMENT_DATA[rKey];
-        reg.playIns.forEach(pi => {
-          selectWinner(pi.id, Math.random() < 0.5 ? pi.teamA : pi.teamB);
-        });
-      });
-
-      // 2. Quadrants round-by-round
-      ['east', 'south', 'midwest', 'west'].forEach(rKey => {
-        const reg = TOURNAMENT_DATA[rKey];
-        const rUpper = rKey.toUpperCase();
-
-        // R128
-        reg.round128.forEach(m => {
-          let teamBName = m.team2;
-          if (m.playInTarget) {
-            teamBName = (getWinner(m.playInTarget) || { name: m.team2 }).name;
-          }
-          // Seed weighted odds
-          const seedWeight = m.seed1 < m.seed2 ? 0.72 : 0.5;
-          selectWinner(m.id, Math.random() < seedWeight ? { name: m.team1, seed: m.seed1 } : { name: teamBName, seed: m.seed2 });
-        });
-
-        // R64
-        for (let i = 0; i < 8; i++) {
-          const gId = `${rUpper}_R64_${i+1}`;
-          const tA = getWinner(reg.round128[i*2].id);
-          const tB = getWinner(reg.round128[i*2+1].id);
-          if (tA && tB) selectWinner(gId, Math.random() < 0.5 ? tA : tB);
-        }
-
-        // Sweet 16
-        for (let i = 0; i < 4; i++) {
-          const gId = `${rUpper}_S16_${i+1}`;
-          const tA = getWinner(`${rUpper}_R64_${i*2+1}`);
-          const tB = getWinner(`${rUpper}_R64_${i*2+2}`);
-          if (tA && tB) selectWinner(gId, Math.random() < 0.5 ? tA : tB);
-        }
-
-        // Elite 8
-        for (let i = 0; i < 2; i++) {
-          const gId = `${rUpper}_E8_${i+1}`;
-          const tA = getWinner(`${rUpper}_S16_${i*2+1}`);
-          const tB = getWinner(`${rUpper}_S16_${i*2+2}`);
-          if (tA && tB) selectWinner(gId, Math.random() < 0.5 ? tA : tB);
-        }
-
-        // Regional Final
-        const regChampId = `${rUpper}_CHAMP`;
-        const rA = getWinner(`${rUpper}_E8_1`);
-        const rB = getWinner(`${rUpper}_E8_2`);
-        if (rA && rB) selectWinner(regChampId, Math.random() < 0.5 ? rA : rB);
-      });
-
-      // 3. National Semis & Final
-      const eChamp = getWinner('EAST_CHAMP');
-      const mChamp = getWinner('MIDWEST_CHAMP');
-      if (eChamp && mChamp) {
-        selectWinner('NAT_SEMI_1', Math.random() < 0.5 ? eChamp : mChamp);
-      }
-
-      const sChamp = getWinner('SOUTH_CHAMP');
-      const wChamp = getWinner('WEST_CHAMP');
-      if (sChamp && wChamp) {
-        selectWinner('NAT_SEMI_2', Math.random() < 0.5 ? sChamp : wChamp);
-      }
-
-      const f1 = getWinner('NAT_SEMI_1');
-      const f2 = getWinner('NAT_SEMI_2');
-      if (f1 && f2) {
-        selectWinner('NAT_CHAMPIONSHIP', Math.random() < 0.5 ? f1 : f2);
-      }
-
-      showToast('All 137 games randomly simulated!', 'ph-shuffle');
-    }
-
-    function confirmResetPicks() {
-      for (const k of Object.keys(PICKS)) {
-        delete PICKS[k];
-      }
-      savePicks();
-      renderApp();
-      updateProgress();
-      showToast('Bracket reset. Start fresh!', 'ph-trash');
-    }
-
-    /* ============================================================
-       10. SHARING VIA WEB SHARE API & CLIPBOARD
-       ============================================================ */
-    async function shareBracket() {
-      const champ = getWinner('NAT_CHAMPIONSHIP');
-      const champText = champ ? champ.name : 'Undecided';
-      const shareData = {
-        title: 'NCAA FBS 138-Team Mega-Bracket',
-        text: `Check out my 138-Team College Football National Bracket! My predicted National Champion: ${champText}.`,
-        url: window.location.href
-      };
-
-      if (navigator.share) {
-        try {
-          await navigator.share(shareData);
-          showToast('Shared successfully!', 'ph-share-network');
-        } catch (e) {
-          // User cancelled or share failed
-        }
+    function advanceNextRoundPill() {
+      const order = ['playin', 'r128', 'r64', 'sweet16', 'elite8', 'regionfinal'];
+      const currentIndex = order.indexOf(activeRound);
+      if (currentIndex < order.length - 1) {
+        setRound(order[currentIndex + 1]);
       } else {
-        // Fallback copy summary to clipboard
-        try {
-          document.execCommand('copy');
-          showToast('Bracket summary copied to clipboard!', 'ph-copy');
-        } catch (err) {
-          showToast('Share link ready!', 'ph-share-network');
-        }
+        switchQuadrant('finals');
       }
     }
 
-    function showToast(msg, iconName = 'ph-info') {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toastMsg');
-      const toastIcon = document.getElementById('toastIcon');
+    function updateProgress() {
+      const totalGames = 137;
+      let filled = Object.keys(bracketPicks).length;
+      if (filled > totalGames) filled = totalGames;
+      const pct = Math.round((filled / totalGames) * 100);
+      document.getElementById('progressBar').style.width = `${pct}%`;
+      document.getElementById('progressText').innerText = `${filled}/${totalGames}`;
+    }
 
-      if (toast && toastMsg) {
-        toastMsg.textContent = msg;
-        if (toastIcon) toastIcon.className = `ph-bold ${iconName} text-blue-400 text-base`;
-        toast.classList.remove('opacity-0', 'translate-y-3');
-        toast.classList.add('opacity-100', 'translate-y-0');
-
-        setTimeout(() => {
-          toast.classList.add('opacity-0', 'translate-y-3');
-          toast.classList.remove('opacity-100', 'translate-y-0');
-        }, 2200);
+    function resetBracket() {
+      if (confirm('Clear all your bracket selections? This will reset all picks.')) {
+        bracketPicks = {};
+        saveState();
+        renderScreen();
       }
     }
 
-    /* ============================================================
-       11. MOBILE PDF EXPORT GENERATION
-       ============================================================ */
-    function exportToPDF() {
-      const btn = document.getElementById('pdfBtn');
-      const origHtml = btn.innerHTML;
-      btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i>`;
-      btn.disabled = true;
+    function randomizeAllPicks() {
+      QUADRANTS.forEach(quad => {
+        const matches = getQuadrantMatchups(quad);
+        // Playin
+        matches.playin.forEach(m => {
+          const pick = Math.random() > 0.5 ? m.teamA : m.teamB;
+          bracketPicks[m.id] = pick;
+        });
+        // R128
+        const r128Matches = getQuadrantMatchups(quad).r128;
+        r128Matches.forEach(m => {
+          const pick = Math.random() > 0.3 ? m.teamA : m.teamB;
+          bracketPicks[m.id] = pick;
+        });
+        // R64
+        const r64Matches = getQuadrantMatchups(quad).r64;
+        r64Matches.forEach(m => {
+          const pick = Math.random() > 0.4 ? m.teamA : m.teamB;
+          bracketPicks[m.id] = pick;
+        });
+        // S16
+        const s16Matches = getQuadrantMatchups(quad).sweet16;
+        s16Matches.forEach(m => {
+          const pick = Math.random() > 0.5 ? m.teamA : m.teamB;
+          bracketPicks[m.id] = pick;
+        });
+        // E8
+        const e8Matches = getQuadrantMatchups(quad).elite8;
+        e8Matches.forEach(m => {
+          const pick = Math.random() > 0.5 ? m.teamA : m.teamB;
+          bracketPicks[m.id] = pick;
+        });
+        // Region Final
+        const rfMatches = getQuadrantMatchups(quad).regionfinal;
+        rfMatches.forEach(m => {
+          const pick = Math.random() > 0.5 ? m.teamA : m.teamB;
+          bracketPicks[m.id] = pick;
+        });
+      });
 
-      const exportContainer = document.getElementById('pdfExportContainer');
-      exportContainer.classList.remove('hidden');
+      // Semifinals
+      const eastChamp = bracketPicks['east_rf_0'];
+      const southChamp = bracketPicks['south_rf_0'];
+      bracketPicks['semi_0'] = Math.random() > 0.5 ? eastChamp : southChamp;
 
-      const natChamp = getWinner('NAT_CHAMPIONSHIP');
-      const eastChamp = getWinner('EAST_CHAMP');
-      const southChamp = getWinner('SOUTH_CHAMP');
-      const midwestChamp = getWinner('MIDWEST_CHAMP');
-      const westChamp = getWinner('WEST_CHAMP');
+      const midwestChamp = bracketPicks['midwest_rf_0'];
+      const westChamp = bracketPicks['west_rf_0'];
+      bracketPicks['semi_1'] = Math.random() > 0.5 ? midwestChamp : westChamp;
 
-      function buildRegionTable(rKey, title) {
-        const reg = TOURNAMENT_DATA[rKey];
-        return `
-          <div class="print-page" style="page-break-after: always; padding: 20px; font-family: sans-serif; color: #111;">
-            <div style="border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 10px; display: flex; justify-content: space-between;">
-              <h2 style="font-size: 16px; margin: 0; text-transform: uppercase;">${title} Picks</h2>
-              <span style="font-size: 11px; font-weight: 700; color: #2563eb;">Regional Winner: ${(getWinner(`${rKey.toUpperCase()}_CHAMP`) || {name: 'UNDECIDED'}).name}</span>
-            </div>
+      // Final
+      bracketPicks['champ_0'] = Math.random() > 0.5 ? bracketPicks['semi_0'] : bracketPicks['semi_1'];
 
-            <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
-              <thead>
-                <tr style="background: #0f172a; color: white;">
-                  <th style="padding: 4px; text-align: left;">Round of 128 Matchup</th>
-                  <th style="padding: 4px; text-align: left;">R128 Pick</th>
-                  <th style="padding: 4px; text-align: left;">R64 Pick</th>
-                  <th style="padding: 4px; text-align: left;">Sweet 16</th>
-                  <th style="padding: 4px; text-align: left;">Elite 8</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${reg.round128.map((m, i) => {
-                  const r128Win = getWinner(m.id);
-                  const r64Win = getWinner(`${rKey.toUpperCase()}_R64_${Math.floor(i/2)+1}`);
-                  const s16Win = getWinner(`${rKey.toUpperCase()}_S16_${Math.floor(i/4)+1}`);
-                  const e8Win = getWinner(`${rKey.toUpperCase()}_E8_${Math.floor(i/8)+1}`);
+      saveState();
+      renderScreen();
+    }
 
-                  return `
-                    <tr style="border-bottom: 1px solid #e2e8f0; ${i % 2 === 1 ? 'background: #f8fafc;' : ''}">
-                      <td style="padding: 3.5px;">(#${m.seed1}) ${m.team1} vs (#${m.seed2}) ${m.team2}</td>
-                      <td style="padding: 3.5px; font-weight: 600; color: #2563eb;">${r128Win ? r128Win.name : '—'}</td>
-                      <td style="padding: 3.5px; font-weight: 600;">${i % 2 === 0 && r64Win ? r64Win.name : ''}</td>
-                      <td style="padding: 3.5px; font-weight: 600; color: #b45309;">${i % 4 === 0 && s16Win ? s16Win.name : ''}</td>
-                      <td style="padding: 3.5px; font-weight: 700; color: #15803d;">${i % 8 === 0 && e8Win ? e8Win.name : ''}</td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
+    // Seeding & Shuffling Functions
+    function openSeedingModal() {
+      const region = currentQuadrant === 'finals' ? 'east' : currentQuadrant;
+      document.getElementById('modalRegionTitle').innerText = region;
+      renderModalTeams(region);
+      document.getElementById('seedModal').classList.remove('hidden');
+    }
 
-      exportContainer.innerHTML = `
-        <!-- Cover & Championship Certificate -->
-        <div class="print-page" style="page-break-after: always; padding: 25px; font-family: sans-serif; color: #111;">
-          <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
-            <h1 style="font-size: 22px; font-weight: 900; margin: 0; text-transform: uppercase;">
-              NCAA Division I FBS 138-Team National Bracket
-            </h1>
-            <p style="font-size: 12px; color: #475569; margin: 4px 0 0 0;">Official User Selections • All 138 Programs Included</p>
-          </div>
+    function closeSeedingModal() {
+      document.getElementById('seedModal').classList.add('hidden');
+      renderScreen();
+    }
 
-          <div style="background: #f1f5f9; border: 2px solid #0f172a; border-radius: 8px; padding: 18px; text-align: center; margin-bottom: 20px;">
-            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.1em; display: block;">
-              Predicted Consensus National Champion
-            </span>
-            <div style="font-size: 26px; font-weight: 900; color: #1d4ed8; text-transform: uppercase; margin-top: 6px;">
-              ${natChamp ? natChamp.name : 'NO CHAMPION SELECTED YET'}
-            </div>
-          </div>
-
-          <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 10px;">
-            The Final Four Qualifiers
-          </h3>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
-              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">East Champion</span>
-              <div style="font-size: 13px; font-weight: 700;">${eastChamp ? eastChamp.name : '—'}</div>
-            </div>
-            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
-              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Midwest Champion</span>
-              <div style="font-size: 13px; font-weight: 700;">${midwestChamp ? midwestChamp.name : '—'}</div>
-            </div>
-            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
-              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">South Champion</span>
-              <div style="font-size: 13px; font-weight: 700;">${southChamp ? southChamp.name : '—'}</div>
-            </div>
-            <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #fafafa;">
-              <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">West Champion</span>
-              <div style="font-size: 13px; font-weight: 700;">${westChamp ? westChamp.name : '—'}</div>
-            </div>
-          </div>
-
-          <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: 9.5px; color: #475569; line-height: 1.4;">
-            <strong>Tournament Summary:</strong> Covers all 138 NCAA Football Bowl Subdivision (FBS) teams across 137 tournament matchups, beginning with 10 First Four play-ins and cascading through the 128-team Round of 64 into the neutral-site National Finals.
+    function renderModalTeams(region) {
+      const list = document.getElementById('modalTeamsList');
+      const teams = teamData[region];
+      list.innerHTML = teams.map((team, idx) => `
+        <div class="flex items-center space-x-2 bg-gray-950 p-2 rounded-lg border border-gray-800">
+          <span class="text-xs font-mono text-gray-400 w-6 text-right">${idx + 1}.</span>
+          <input type="text" value="${escapeQuotes(team)}" onchange="updateTeamName('${region}', ${idx}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+          <div class="flex space-x-1">
+            <button onclick="moveTeam('${region}', ${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-30 p-1 text-gray-500"' : 'class="p-1 text-gray-400 hover:text-white"'}><i class="ph ph-arrow-up"></i></button>
+            <button onclick="moveTeam('${region}', ${idx}, 1)" ${idx === teams.length - 1 ? 'disabled class="opacity-30 p-1 text-gray-500"' : 'class="p-1 text-gray-400 hover:text-white"'}><i class="ph ph-arrow-down"></i></button>
           </div>
         </div>
+      `).join('');
+    }
 
-        <!-- Regional breakdown pages -->
-        ${buildRegionTable('east', 'East Quadrant')}
-        ${buildRegionTable('south', 'South Quadrant')}
-        ${buildRegionTable('midwest', 'Midwest Quadrant')}
-        ${buildRegionTable('west', 'West Quadrant')}
+    function updateTeamName(region, index, newName) {
+      teamData[region][index] = newName.trim();
+      saveState();
+    }
+
+    function moveTeam(region, index, delta) {
+      const target = index + delta;
+      if (target < 0 || target >= teamData[region].length) return;
+      const temp = teamData[region][index];
+      teamData[region][index] = teamData[region][target];
+      teamData[region][target] = temp;
+      saveState();
+      renderModalTeams(region);
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function shuffleCurrentQuadrant() {
+      const region = currentQuadrant === 'finals' ? 'east' : currentQuadrant;
+      teamData[region] = shuffleArray([...teamData[region]]);
+      bracketPicks = {}; // clear downstream matches to avoid invalid states
+      saveState();
+      renderModalTeams(region);
+    }
+
+    function shuffleAllQuadrants() {
+      QUADRANTS.forEach(quad => {
+        teamData[quad] = shuffleArray([...teamData[quad]]);
+      });
+      bracketPicks = {};
+      saveState();
+      renderModalTeams(currentQuadrant === 'finals' ? 'east' : currentQuadrant);
+    }
+
+    function escapeQuotes(str) {
+      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // PDF Generator via html2pdf
+    function downloadBracketPDF() {
+      const btn = document.getElementById('pdfBtn');
+      btn.innerText = 'Generating...';
+      btn.disabled = true;
+
+      const exportDiv = document.getElementById('pdfExportContainer');
+      exportDiv.classList.remove('hidden');
+
+      const champ = bracketPicks['champ_0'] || 'Undetermined';
+      const s1 = bracketPicks['semi_0'] || 'Undetermined';
+      const s2 = bracketPicks['semi_1'] || 'Undetermined';
+
+      exportDiv.innerHTML = `
+        <div style="font-family: sans-serif; padding: 20px; color: #111;">
+          <div style="text-align: center; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 15px;">
+            <h1 style="font-size: 20px; margin: 0; text-transform: uppercase;">FBS 138-Team College Football National Bracket</h1>
+            <p style="font-size: 11px; color: #555; margin: 4px 0 0 0;">Official Bracket Results & Regional Seeding</p>
+          </div>
+
+          <div style="background: #f3f4f6; border: 2px solid #e5e7eb; border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 10px; text-transform: uppercase; color: #b45309; font-weight: bold; letter-spacing: 1px;">National Champion</span>
+            <h2 style="font-size: 22px; margin: 5px 0; color: #000; font-weight: 900;">${champ}</h2>
+            <div style="font-size: 11px; color: #4b5563; margin-top: 4px;">
+              <strong>Finalists:</strong> ${s1} vs ${s2}
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            ${QUADRANTS.map(q => {
+              const regChamp = bracketPicks[`${q}_rf_0`] || 'Undetermined';
+              return `
+                <div style="border: 1px solid #ccc; border-radius: 6px; padding: 10px; font-size: 10px;">
+                  <h3 style="margin: 0 0 6px 0; text-transform: uppercase; font-size: 12px; color: #1d4ed8; border-bottom: 1px solid #eee; padding-bottom: 4px;">${q.toUpperCase()} REGION</h3>
+                  <p style="margin: 0 0 8px 0; font-weight: bold;">Regional Champion: <span style="color: #000;">${regChamp}</span></p>
+                  <div>
+                    <strong>Top 8 Seeds:</strong>
+                    <ol style="margin: 4px 0 0 16px; padding: 0;">
+                      ${teamData[q].slice(0, 8).map((t, idx) => `<li>#${idx + 1} ${t}</li>`).join('')}
+                    </ol>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
       `;
 
       const opt = {
-        margin: 0.25,
-        filename: 'FBS_138_Championship_Bracket.pdf',
+        margin: 0.4,
+        filename: 'fbs_138_national_bracket.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(exportContainer).save().then(() => {
-        exportContainer.classList.add('hidden');
-        btn.innerHTML = origHtml;
+      html2pdf().set(opt).from(exportDiv).save().then(() => {
+        exportDiv.classList.add('hidden');
+        btn.innerHTML = '<i class="ph ph-file-pdf"></i><span>PDF</span>';
         btn.disabled = false;
-        showToast('PDF downloaded successfully!', 'ph-file-pdf');
       }).catch(err => {
-        console.error('PDF error:', err);
-        window.print();
-        exportContainer.classList.add('hidden');
-        btn.innerHTML = origHtml;
+        alert('PDF Generation failed: ' + err);
+        exportDiv.classList.add('hidden');
+        btn.innerHTML = '<i class="ph ph-file-pdf"></i><span>PDF</span>';
         btn.disabled = false;
       });
     }
+
+    // Launch
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
